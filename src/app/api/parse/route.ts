@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse natural language to structured log
-    const parsedLog = await parseWithClaude(text);
+    const { parsedLog, usedFallback, parseError } = await parseWithClaude(text);
 
     // Insert into Supabase
     const logEntry: Database['public']['Tables']['logs']['Insert'] = {
@@ -46,7 +46,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ success: true, log: data });
+    // Alert if regex fallback was used
+    const warning = usedFallback
+      ? `⚠️ FALLBACK USED: Claude API failed (${parseError}). Regex parser used instead.`
+      : null;
+
+    if (warning) {
+      console.warn(warning);
+      console.warn('Original text:', text);
+      console.warn('Parsed result:', parsedLog);
+    }
+
+    return NextResponse.json({
+      success: true,
+      log: data,
+      warning: usedFallback,
+      parseError: usedFallback ? parseError : undefined
+    });
   } catch (error) {
     console.error('Parse API error:', error);
     return NextResponse.json(
@@ -56,7 +72,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function parseWithClaude(text: string): Promise<ParsedLog> {
+interface ParseResult {
+  parsedLog: ParsedLog;
+  usedFallback: boolean;
+  parseError?: string;
+}
+
+async function parseWithClaude(text: string): Promise<ParseResult> {
   const currentTime = new Date().toISOString();
 
   const systemPrompt = `You are a baby activity log parser. Extract structured data from natural language.
@@ -101,6 +123,8 @@ If unsure about ANY field, set needs_review to true.`;
 
   try {
     const anthropic = getAnthropicClient();
+    console.log('[Parse] Input text:', text);
+
     const message = await anthropic.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: MAX_TOKENS,
@@ -118,13 +142,24 @@ If unsure about ANY field, set needs_review to true.`;
       throw new Error('Unexpected response type');
     }
 
+    console.log('[Parse] Claude response:', content.text);
+
     // Parse JSON response
     const parsed = JSON.parse(content.text) as ParsedLog;
-    return parsed;
+    console.log('[Parse] Parsed result:', parsed);
+    return { parsedLog: parsed, usedFallback: false };
   } catch (error) {
-    console.error('Claude API error, falling back to regex:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[Parse] Claude API error, falling back to regex:', error);
+
     // Fallback to regex parser
-    return parseWithRegex(text);
+    const regexResult = parseWithRegex(text);
+
+    return {
+      parsedLog: regexResult,
+      usedFallback: true,
+      parseError: errorMessage
+    };
   }
 }
 

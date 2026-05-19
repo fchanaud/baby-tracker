@@ -98,8 +98,19 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
 
       const result = await response.json();
 
-      // Show validation message (stays until next recording)
-      setValidationMessage(`✓ Logged: "${text}"`);
+      // Check if fallback was used
+      if (result.warning) {
+        console.error('⚠️ REGEX FALLBACK USED:', result.parseError);
+        console.error('Original text:', text);
+        console.error('Parsed log:', result.log);
+
+        // Show warning to user
+        setValidationMessage(`⚠️ Saved with limited parsing: "${text}"\n(Claude API unavailable - check needs_review)`);
+        setError('Warning: AI parsing unavailable. Basic fallback used.');
+      } else {
+        // Show validation message (stays until next recording)
+        setValidationMessage(`✓ Logged: "${text}"`);
+      }
 
       // Success - notify parent to refresh
       onLogCreated();
