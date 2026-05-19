@@ -18,6 +18,20 @@ export async function POST(request: NextRequest) {
     // Parse natural language to structured log
     const { parsedLog, usedFallback, parseError } = await parseWithClaude(text);
 
+    // Validate breastfeed logs must have a side
+    if (parsedLog.log_type === 'breastfeed' && !parsedLog.side) {
+      console.error('❌ VALIDATION FAILED: Breastfeed log without side');
+      console.error('Original text:', text);
+      console.error('Parsed log:', parsedLog);
+
+      return NextResponse.json({
+        success: false,
+        validationError: 'Missing side information',
+        message: 'Please specify which side (left or right tit)',
+        log: parsedLog
+      }, { status: 400 });
+    }
+
     // Insert into Supabase
     const logEntry: Database['public']['Tables']['logs']['Insert'] = {
       logged_by,

@@ -92,11 +92,19 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         body: JSON.stringify({ text, logged_by: identity }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to parse');
-      }
-
       const result = await response.json();
+
+      // Check for validation errors (400 status)
+      if (!response.ok || result.validationError) {
+        console.error('❌ VALIDATION ERROR:', result.validationError);
+        console.error('Original text:', text);
+        console.error('Parsed log:', result.log);
+
+        // Show error to user
+        setError(`❌ Failed: ${result.validationError}. Please specify which side (left/right).`);
+        setValidationMessage(null);
+        return;
+      }
 
       // Check if fallback was used
       if (result.warning) {
