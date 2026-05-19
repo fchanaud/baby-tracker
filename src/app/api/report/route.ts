@@ -64,14 +64,7 @@ Data: ${JSON.stringify(logs)}`;
           content: query,
         },
       ],
-      // Use prompt caching for the system prompt
-      system: [
-        {
-          type: 'text',
-          text: systemPrompt,
-          cache_control: { type: 'ephemeral' }
-        }
-      ],
+      system: systemPrompt,
     });
 
     const content = message.content[0];

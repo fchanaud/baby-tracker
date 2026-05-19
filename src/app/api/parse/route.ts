@@ -131,14 +131,7 @@ Set needs_review:true if uncertain.`;
           content: text,
         },
       ],
-      // Use prompt caching to cache the system prompt - saves ~70% on input tokens
-      system: [
-        {
-          type: 'text',
-          text: systemPrompt,
-          cache_control: { type: 'ephemeral' }
-        }
-      ],
+      system: systemPrompt,
     });
 
     const content = message.content[0];
