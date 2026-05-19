@@ -7,7 +7,7 @@ import IdentityPicker from './IdentityPicker';
 import VoiceInput from './VoiceInput';
 import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
-import InteractiveTimeline from './InteractiveTimeline';
+import VisualTimeline from './VisualTimeline';
 import RecentLogs from './RecentLogs';
 
 export default function Dashboard() {
@@ -59,11 +59,8 @@ export default function Dashboard() {
         {/* Metrics */}
         <MetricCards logs={logs} />
 
-        {/* Interactive Timeline */}
-        <InteractiveTimeline logs={logs} />
-
-        {/* Recent Logs */}
-        <RecentLogs logs={logs} />
+        {/* Visual Timeline */}
+        <VisualTimeline logs={logs} />
 
         {/* User Info */}
         <div className="text-center text-sm text-gray-500 pb-4">
