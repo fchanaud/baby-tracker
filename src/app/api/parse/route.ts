@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { anthropic, CLAUDE_MODEL, MAX_TOKENS } from '@/lib/claude';
 import { supabase } from '@/lib/supabase';
 import type { ParsedLog } from '@/lib/types';
+import type { Database } from '@/lib/database.types';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,20 +19,22 @@ export async function POST(request: NextRequest) {
     const parsedLog = await parseWithClaude(text);
 
     // Insert into Supabase
+    const logEntry: Database['public']['Tables']['logs']['Insert'] = {
+      logged_by,
+      log_type: parsedLog.log_type,
+      side: parsedLog.side ?? null,
+      duration_minutes: parsedLog.duration_minutes ?? null,
+      amount_ml: parsedLog.amount_ml ?? null,
+      nappy_type: parsedLog.nappy_type ?? null,
+      weight_grams: parsedLog.weight_grams ?? null,
+      note: parsedLog.note ?? null,
+      logged_at: parsedLog.logged_at ?? new Date().toISOString(),
+      needs_review: parsedLog.needs_review ?? false,
+    };
+
     const { data, error } = await supabase
       .from('logs')
-      .insert({
-        logged_by,
-        log_type: parsedLog.log_type,
-        side: parsedLog.side || null,
-        duration_minutes: parsedLog.duration_minutes || null,
-        amount_ml: parsedLog.amount_ml || null,
-        nappy_type: parsedLog.nappy_type || null,
-        weight_grams: parsedLog.weight_grams || null,
-        note: parsedLog.note || null,
-        logged_at: parsedLog.logged_at || new Date().toISOString(),
-        needs_review: parsedLog.needs_review,
-      })
+      .insert(logEntry as any)
       .select()
       .single();
 

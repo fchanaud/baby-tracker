@@ -56,6 +56,6 @@ export interface Alert {
 export interface DashboardMetrics {
   feedsToday: number;
   totalSleepMinutes: number;
-  nappiesT oday: number;
+  nappiesToday: number;
   minutesSinceLastFeed: number | null;
 }

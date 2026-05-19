@@ -23,7 +23,7 @@ export default function MetricCards({ logs }: MetricCardsProps) {
     .reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
 
   // Nappies today
-  const nappiesT oday = todayLogs.filter(log => log.log_type === 'nappy').length;
+  const nappiesToday = todayLogs.filter(log => log.log_type === 'nappy').length;
 
   // Time since last feed
   const feedLogs = logs.filter(log =>
@@ -52,7 +52,7 @@ export default function MetricCards({ logs }: MetricCardsProps) {
 
       <MetricCard
         title="Nappies"
-        value={nappiesT oday.toString()}
+        value={nappiesToday.toString()}
         subtitle="Target: 6+"
         color="bg-gray-50 border-gray-200"
       />
