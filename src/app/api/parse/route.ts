@@ -72,6 +72,8 @@ Output ONLY valid JSON with these fields (no markdown, no explanation):
 - logged_at?: ISO8601 string (if time mentioned, calculate relative to current time)
 - needs_review: boolean (true if uncertain about any field)
 
+CRITICAL: "for X minutes" = duration. "X minutes ago" = when it started (logged_at). Do NOT confuse them.
+
 Examples:
 "breastfed for 20 minutes left side" → {"log_type":"breastfeed","side":"left","duration_minutes":20,"needs_review":false}
 "breastfed for 20 minutes left tit" → {"log_type":"breastfeed","side":"left","duration_minutes":20,"needs_review":false}
@@ -81,6 +83,8 @@ Examples:
 "gave her a bottle of 60ml 30 minutes ago" → {"log_type":"bottle","amount_ml":60,"logged_at":"${calculatePastTime(30)}","needs_review":false}
 "she slept for 2 hours" → {"log_type":"sleep","duration_minutes":120,"needs_review":false}
 "baby slept 45 minutes, that was at 3am" → {"log_type":"sleep","duration_minutes":45,"logged_at":"${getTodayAt3AM()}","needs_review":false}
+"slept for 20 minutes 10 minutes ago" → {"log_type":"sleep","duration_minutes":20,"logged_at":"${calculatePastTime(10)}","needs_review":false}
+"she slept for 30 mins starting 15 minutes ago" → {"log_type":"sleep","duration_minutes":30,"logged_at":"${calculatePastTime(15)}","needs_review":false}
 "nappy change, wet" → {"log_type":"nappy","nappy_type":"wet","needs_review":false}
 "dirty nappy just now" → {"log_type":"nappy","nappy_type":"dirty","needs_review":false}
 "mixed nappy" → {"log_type":"nappy","nappy_type":"mixed","needs_review":false}
