@@ -2,7 +2,7 @@
 
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLogs } from '@/hooks/useLogs';
-import { getAlerts, getSideAlternationSuggestion } from '@/lib/alerts';
+import { getAlerts } from '@/lib/alerts';
 import IdentityPicker from './IdentityPicker';
 import VoiceInput from './VoiceInput';
 import AlertBanner from './AlertBanner';
@@ -32,7 +32,6 @@ export default function Dashboard() {
 
   // Calculate alerts
   const alert = getAlerts(logs);
-  const sideAlternation = getSideAlternationSuggestion(logs);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -53,13 +52,6 @@ export default function Dashboard() {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Alert Banner */}
         {alert && <AlertBanner alert={alert} />}
-
-        {/* Side Alternation */}
-        {sideAlternation && (
-          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-            <p className="text-purple-800 font-semibold text-center">{sideAlternation}</p>
-          </div>
-        )}
 
         {/* Voice Input */}
         <VoiceInput identity={identity} onLogCreated={refresh} />

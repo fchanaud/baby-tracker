@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Identity } from '@/hooks/useIdentity';
 
 interface VoiceInputProps {
@@ -13,6 +13,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     // Check if Web Speech API is supported
@@ -30,6 +32,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
 
     recognition.lang = 'en-US';
     recognition.interimResults = false;
@@ -39,6 +42,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
       setIsListening(true);
       setError(null);
       setTranscript('');
+      setValidationMessage(null);
     };
 
     recognition.onresult = async (event: any) => {
@@ -57,9 +61,25 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
 
     recognition.onend = () => {
       setIsListening(false);
+      recognitionRef.current = null;
     };
 
     recognition.start();
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
+
+  const handleMicrophoneClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
   };
 
   const parseAndSave = async (text: string) => {
@@ -76,8 +96,12 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         throw new Error('Failed to parse');
       }
 
+      const result = await response.json();
+
+      // Show validation message (stays until next recording)
+      setValidationMessage(`✓ Logged: "${text}"`);
+
       // Success - notify parent to refresh
-      setTranscript('');
       onLogCreated();
     } catch (error) {
       console.error('Parse error:', error);
@@ -100,8 +124,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
     <div className="space-y-4">
       {/* Microphone Button */}
       <button
-        onClick={startListening}
-        disabled={isListening}
+        onClick={handleMicrophoneClick}
         className={`w-full h-24 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${
           isListening
             ? 'bg-red-500 animate-pulse'
@@ -112,16 +135,15 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         <div className="text-center">
           <div className="text-6xl mb-2">🎤</div>
           <div className="text-white font-semibold text-lg">
-            {isListening ? 'Listening...' : 'Tap to speak'}
+            {isListening ? 'Tap to stop' : 'Tap to speak'}
           </div>
         </div>
       </button>
 
-      {/* Transcript Display */}
-      {transcript && (
+      {/* Validation Message */}
+      {validationMessage && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <p className="text-green-800 font-semibold mb-1">Logged:</p>
-          <p className="text-green-700">{transcript}</p>
+          <p className="text-green-800 font-semibold">{validationMessage}</p>
         </div>
       )}
 
