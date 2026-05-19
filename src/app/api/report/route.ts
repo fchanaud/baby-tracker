@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { anthropic, CLAUDE_MODEL, MAX_TOKENS } from '@/lib/claude';
+import { getAnthropicClient, CLAUDE_MODEL, MAX_TOKENS } from '@/lib/claude';
 import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
@@ -59,6 +59,7 @@ User question: "${query}"
 Provide a concise, parent-friendly answer. Include specific numbers and times where relevant. Do not diagnose medical conditions. Keep the answer under 150 words.`;
 
   try {
+    const anthropic = getAnthropicClient();
     const message = await anthropic.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: MAX_TOKENS,
