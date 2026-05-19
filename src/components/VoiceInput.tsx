@@ -14,6 +14,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
   const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -86,6 +87,13 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
     if (!identity) return;
 
     try {
+      // Show processing state
+      setIsProcessing(true);
+      setError(null);
+      setValidationMessage(`🔄 Processing: "${text}"...`);
+
+      console.log('📤 Sending to API:', text);
+
       const response = await fetch('/api/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,6 +101,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
       });
 
       const result = await response.json();
+
+      console.log('📥 API Response:', result);
 
       // Check for validation errors (400 status)
       if (!response.ok || result.validationError) {
@@ -103,6 +113,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         // Show error to user
         setError(`❌ Failed: ${result.validationError}. Please specify which side (left/right).`);
         setValidationMessage(null);
+        setIsProcessing(false);
         return;
       }
 
@@ -117,14 +128,17 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         setError('Warning: AI parsing unavailable. Basic fallback used.');
       } else {
         // Show validation message (stays until next recording)
+        console.log('✅ Successfully logged:', result.log);
         setValidationMessage(`✓ Logged: "${text}"`);
       }
 
       // Success - notify parent to refresh
       onLogCreated();
+      setIsProcessing(false);
     } catch (error) {
       console.error('Parse error:', error);
       setError('Failed to save. Try again.');
+      setIsProcessing(false);
     }
   };
 
@@ -144,25 +158,42 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
       {/* Microphone Button */}
       <button
         onClick={handleMicrophoneClick}
+        disabled={isProcessing}
         className={`w-full h-24 rounded-2xl flex items-center justify-center transition-all active:scale-95 ${
           isListening
             ? 'bg-red-500 animate-pulse'
+            : isProcessing
+            ? 'bg-gray-400 cursor-not-allowed'
             : 'bg-blue-500 hover:bg-blue-600'
         }`}
         style={{ minHeight: '48px' }}
       >
         <div className="text-center">
-          <div className="text-6xl mb-2">🎤</div>
+          <div className="text-6xl mb-2">
+            {isProcessing ? '⏳' : '🎤'}
+          </div>
           <div className="text-white font-semibold text-lg">
-            {isListening ? 'Tap to stop' : 'Tap to speak'}
+            {isProcessing ? 'Processing...' : isListening ? 'Tap to stop' : 'Tap to speak'}
           </div>
         </div>
       </button>
 
       {/* Validation Message */}
       {validationMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <p className="text-green-800 font-semibold">{validationMessage}</p>
+        <div className={`border rounded-xl p-4 ${
+          validationMessage.startsWith('🔄')
+            ? 'bg-blue-50 border-blue-200'
+            : validationMessage.startsWith('⚠️')
+            ? 'bg-yellow-50 border-yellow-200'
+            : 'bg-green-50 border-green-200'
+        }`}>
+          <p className={`font-semibold whitespace-pre-line ${
+            validationMessage.startsWith('🔄')
+              ? 'text-blue-800'
+              : validationMessage.startsWith('⚠️')
+              ? 'text-yellow-800'
+              : 'text-green-800'
+          }`}>{validationMessage}</p>
         </div>
       )}
 
