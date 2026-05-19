@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { anthropic, CLAUDE_MODEL, MAX_TOKENS } from '@/lib/claude';
+import { getAnthropicClient, CLAUDE_MODEL, MAX_TOKENS } from '@/lib/claude';
 import { supabase } from '@/lib/supabase';
 import type { ParsedLog } from '@/lib/types';
 import type { Database } from '@/lib/database.types';
@@ -96,6 +96,7 @@ If the user mentions a past time (e.g., "30 minutes ago", "at 6am"), calculate l
 If unsure about ANY field, set needs_review to true.`;
 
   try {
+    const anthropic = getAnthropicClient();
     const message = await anthropic.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: MAX_TOKENS,

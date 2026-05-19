@@ -36,6 +36,24 @@ Focus: speed, simplicity, low cognitive load, minimal UI.
 - Business logic should not rely on LLM decisions
 - Alerts should be deterministic where possible
 
+## Deployment Workflow (Vercel MCP)
+
+When deploying via Vercel MCP:
+
+- Deploy the application after code changes
+- If the build fails:
+  - Automatically fetch build logs via MCP
+  - Identify the root cause from logs
+  - Apply the minimal necessary fix (avoid unrelated refactors)
+  - Redeploy the application
+
+Repeat this loop until:
+- Deployment succeeds, OR
+- Maximum of 3 attempts is reached, OR
+- The issue is determined to be architectural and requires user intervention
+
+Never make large refactors during this loop unless required by the error logs.
+
 ## Core Data Models
 - Feed (breast / bottle)
 - Sleep
