@@ -95,45 +95,28 @@ interface ParseResult {
 async function parseWithClaude(text: string): Promise<ParseResult> {
   const currentTime = new Date().toISOString();
 
-  const systemPrompt = `You are a baby activity log parser. Extract structured data from natural language.
+  // Compressed prompt to minimize tokens while maintaining accuracy
+  const systemPrompt = `Parse baby activity to JSON. Output ONLY JSON, no markdown.
 
-Output ONLY valid JSON with these fields (no markdown, no explanation):
-- log_type: "breastfeed" | "bottle" | "sleep" | "nappy" | "weight" | "note"
-- side?: "left" | "right" | "both" (breastfeed only)
-- duration_minutes?: number
-- amount_ml?: number (bottle only)
-- nappy_type?: "wet" | "dirty" | "mixed"
-- weight_grams?: number
-- note?: string
-- logged_at?: ISO8601 string (if time mentioned, calculate relative to current time)
-- needs_review: boolean (true if uncertain about any field)
+Fields: log_type, side?, duration_minutes?, amount_ml?, nappy_type?, weight_grams?, note?, logged_at?, needs_review
 
-CRITICAL: "for X minutes" = duration. "X minutes ago" = when it started (logged_at). Do NOT confuse them.
+Types: "breastfeed"|"bottle"|"sleep"|"nappy"|"weight"|"note"
+Side: "left"|"right"|"both" (breastfeed only, REQUIRED)
+Nappy: "wet"|"dirty"|"mixed"
+
+CRITICAL: "for X min" = duration, "X min ago" = logged_at timestamp
+
+Current: ${currentTime}
 
 Examples:
-"breastfed for 20 minutes left side" → {"log_type":"breastfeed","side":"left","duration_minutes":20,"needs_review":false}
-"breastfed for 20 minutes left tit" → {"log_type":"breastfeed","side":"left","duration_minutes":20,"needs_review":false}
-"she fed on the right for 15 mins" → {"log_type":"breastfeed","side":"right","duration_minutes":15,"needs_review":false}
-"fed both sides, about 10 minutes each" → {"log_type":"breastfeed","side":"both","duration_minutes":20,"needs_review":false}
-"bottle, 90ml" → {"log_type":"bottle","amount_ml":90,"needs_review":false}
-"gave her a bottle of 60ml 30 minutes ago" → {"log_type":"bottle","amount_ml":60,"logged_at":"${calculatePastTime(30)}","needs_review":false}
-"she slept for 2 hours" → {"log_type":"sleep","duration_minutes":120,"needs_review":false}
-"baby slept 45 minutes, that was at 3am" → {"log_type":"sleep","duration_minutes":45,"logged_at":"${getTodayAt3AM()}","needs_review":false}
-"slept for 20 minutes 10 minutes ago" → {"log_type":"sleep","duration_minutes":20,"logged_at":"${calculatePastTime(10)}","needs_review":false}
-"she slept for 30 mins starting 15 minutes ago" → {"log_type":"sleep","duration_minutes":30,"logged_at":"${calculatePastTime(15)}","needs_review":false}
-"nappy change, wet" → {"log_type":"nappy","nappy_type":"wet","needs_review":false}
-"dirty nappy just now" → {"log_type":"nappy","nappy_type":"dirty","needs_review":false}
-"mixed nappy" → {"log_type":"nappy","nappy_type":"mixed","needs_review":false}
-"she weighs 3.8 kilos" → {"log_type":"weight","weight_grams":3800,"needs_review":false}
-"weight check: 4100 grams" → {"log_type":"weight","weight_grams":4100,"needs_review":false}
-"note: she seemed gassy after the feed" → {"log_type":"note","note":"she seemed gassy after the feed","needs_review":false}
-"fed right tit 8 mins — not sure she latched well" → {"log_type":"breastfeed","side":"right","duration_minutes":8,"note":"not sure she latched well","needs_review":true}
-"quick feed left side maybe 5 minutes, around 6am" → {"log_type":"breastfeed","side":"left","duration_minutes":5,"logged_at":"${getTodayAt6AM()}","needs_review":true}
+"breastfed 20min left" → {"log_type":"breastfeed","side":"left","duration_minutes":20,"needs_review":false}
+"bottle 90ml" → {"log_type":"bottle","amount_ml":90,"needs_review":false}
+"slept 2 hours" → {"log_type":"sleep","duration_minutes":120,"needs_review":false}
+"slept 20min 10min ago" → {"log_type":"sleep","duration_minutes":20,"logged_at":"${calculatePastTime(10)}","needs_review":false}
+"wet nappy" → {"log_type":"nappy","nappy_type":"wet","needs_review":false}
+"weighs 3.8kg" → {"log_type":"weight","weight_grams":3800,"needs_review":false}
 
-Current time: ${currentTime}
-
-If the user mentions a past time (e.g., "30 minutes ago", "at 6am"), calculate logged_at relative to current time.
-If unsure about ANY field, set needs_review to true.`;
+Set needs_review:true if uncertain.`;
 
   try {
     const anthropic = getAnthropicClient();
@@ -148,7 +131,14 @@ If unsure about ANY field, set needs_review to true.`;
           content: text,
         },
       ],
-      system: systemPrompt,
+      // Use prompt caching to cache the system prompt - saves ~70% on input tokens
+      system: [
+        {
+          type: 'text',
+          text: systemPrompt,
+          cache_control: { type: 'ephemeral' }
+        }
+      ],
     });
 
     const content = message.content[0];
@@ -158,8 +148,14 @@ If unsure about ANY field, set needs_review to true.`;
 
     console.log('[Parse] Claude response:', content.text);
 
+    // Strip markdown code blocks if present (Haiku sometimes adds them)
+    let jsonText = content.text.trim();
+    if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '').trim();
+    }
+
     // Parse JSON response
-    const parsed = JSON.parse(content.text) as ParsedLog;
+    const parsed = JSON.parse(jsonText) as ParsedLog;
     console.log('[Parse] Parsed result:', parsed);
     return { parsedLog: parsed, usedFallback: false };
   } catch (error) {

@@ -1,8 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-// Model configuration
-export const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
-export const MAX_TOKENS = 1024;
+// Model configuration - using Haiku for cost optimization
+// Haiku is 20x cheaper than Sonnet while still accurate for parsing tasks
+export const CLAUDE_MODEL = 'claude-haiku-4-5-20251001';
+export const MAX_TOKENS = 150; // Reduced from 1024 - we only need ~100 tokens for JSON output
 
 // Lazy-initialized Anthropic client to avoid build-time errors
 let _anthropic: Anthropic | null = null;

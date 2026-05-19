@@ -47,29 +47,31 @@ export async function POST(request: NextRequest) {
 async function generateReport(query: string, logs: any[]): Promise<string> {
   const currentTime = new Date().toISOString();
 
-  const systemPrompt = `You are a baby activity report generator. Answer questions about baby logs using the provided data.
+  // Compress prompt and use compact JSON to reduce tokens
+  const systemPrompt = `Answer baby log questions. Be concise (<150 words), parent-friendly, no medical diagnoses.
 
-Current date: ${currentTime}
-
-Available log data (JSON):
-${JSON.stringify(logs, null, 2)}
-
-User question: "${query}"
-
-Provide a concise, parent-friendly answer. Include specific numbers and times where relevant. Do not diagnose medical conditions. Keep the answer under 150 words.`;
+Date: ${currentTime}
+Data: ${JSON.stringify(logs)}`;
 
   try {
     const anthropic = getAnthropicClient();
     const message = await anthropic.messages.create({
       model: CLAUDE_MODEL,
-      max_tokens: MAX_TOKENS,
+      max_tokens: 300, // Increased slightly for report responses
       messages: [
         {
           role: 'user',
           content: query,
         },
       ],
-      system: systemPrompt,
+      // Use prompt caching for the system prompt
+      system: [
+        {
+          type: 'text',
+          text: systemPrompt,
+          cache_control: { type: 'ephemeral' }
+        }
+      ],
     });
 
     const content = message.content[0];
