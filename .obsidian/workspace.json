@@ -205,7 +205,7 @@
               },
               "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠂ Summarize root markdown files"
+              "title": "Terminal: ⠐ Summarize root markdown files"
             }
           },
           {
@@ -242,8 +242,9 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "3a4404d61509c4b2",
+  "active": "01493ec42d64b668",
   "lastOpenFiles": [
+    "baby-tracker/src/components/DurationBar.tsx.tmp.85015.21cfd89c9f6e",
     "baby-tracker/CLAUDE.md",
     "baby-tracker/src/hooks/useBabyProfile.ts",
     "baby-tracker/src/components/BabyProfile.tsx",
@@ -287,7 +288,6 @@
     "baby-tracker/node_modules/playwright/lib/agents/playwright-test-planner.agent.md",
     "baby-tracker/node_modules/playwright/lib/agents/playwright-test-plan.prompt.md",
     "baby-tracker/node_modules/playwright/lib/agents/playwright-test-healer.agent.md",
-    "baby-tracker/node_modules/playwright/lib/agents/playwright-test-heal.prompt.md",
-    "baby-tracker/node_modules/playwright/lib/agents/playwright-test-generator.agent.md"
+    "baby-tracker/node_modules/playwright/lib/agents/playwright-test-heal.prompt.md"
   ]
 }

@@ -21,11 +21,12 @@ export default function DurationBar({ log, maxDuration, onBarClick, onLongPress 
   if (isNappy) {
     return (
       <div
-        className="absolute bottom-0 pointer-events-none"
+        className="absolute bottom-0 cursor-pointer hover:scale-125 transition-transform active:scale-110"
         style={{
           left: `${position}%`,
           transform: 'translateX(-50%)',
         }}
+        onClick={() => onBarClick(log)}
       >
         <div
           className="w-3 h-3 rounded-full shadow-md"
@@ -36,18 +37,19 @@ export default function DurationBar({ log, maxDuration, onBarClick, onLongPress 
     );
   }
 
-  // Duration-based activities: show as bars (non-clickable)
+  // Duration-based activities: show as bars (clickable)
   const height = getBarHeight(log.duration_minutes ?? null, maxDuration);
 
   return (
     <div
-      className="absolute bottom-0 pointer-events-none"
+      className="absolute bottom-0 cursor-pointer hover:opacity-80 transition-opacity active:scale-95"
       style={{
         left: `${position}%`,
         height: `${height}%`,
         width: '10px',
         transform: 'translateX(-5px)', // Center bar on position
       }}
+      onClick={() => onBarClick(log)}
       title={`${log.log_type} - ${formatDuration(log.duration_minutes ?? null)} at ${formatTime(log.logged_at)}`}
     >
       <div
