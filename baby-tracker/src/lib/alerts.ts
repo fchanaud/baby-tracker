@@ -5,28 +5,49 @@ import type { Log, Alert } from './types';
  * Based on NHS newborn guidance from NHS_RULES.md
  */
 
-export function getAlerts(logs: Log[]): Alert | null {
-  const now = new Date();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
+export function getAlerts(logs: Log[], selectedDate: Date = new Date()): Alert | null {
+  const dateStart = new Date(selectedDate);
+  dateStart.setHours(0, 0, 0, 0);
+  const dateEnd = new Date(selectedDate);
+  dateEnd.setHours(23, 59, 59, 999);
 
-  // Filter logs from today
-  const todayLogs = logs.filter(log => new Date(log.logged_at) >= todayStart);
+  // Filter logs for selected date
+  const dateLogs = logs.filter(log => {
+    const logDate = new Date(log.logged_at);
+    return logDate >= dateStart && logDate <= dateEnd;
+  });
 
-  // Priority 1: No feed in 3+ hours
-  const noFeedAlert = checkNoFeedAlert(logs, now);
-  if (noFeedAlert) return noFeedAlert;
+  // Check if selected date is today
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
 
-  // Priority 2: Short feed (<10 min)
-  const shortFeedAlert = checkShortFeedAlert(todayLogs);
+  // NHS Priority Order (from NHS_RULES.md):
+  // 1. Wet nappies (highest signal)
+  // 2. Feeding frequency
+  // 3. Weight trend
+  // 4. Side imbalance (supporting)
+
+  // Priority 1: Low nappy count (<6 by 8pm) - HIGHEST PRIORITY per NHS
+  if (isToday) {
+    const lowNappyAlert = checkLowNappyCountAlert(dateLogs, selectedDate);
+    if (lowNappyAlert) return lowNappyAlert;
+  }
+
+  // Priority 2: No feed in 3+ hours (only check for today)
+  if (isToday) {
+    const noFeedAlert = checkNoFeedAlert(logs, selectedDate);
+    if (noFeedAlert) return noFeedAlert;
+  }
+
+  // Priority 3: Weight trend concerns
+  const weightAlert = checkWeightTrendAlert(logs);
+  if (weightAlert) return weightAlert;
+
+  // Priority 4: Short feed (<10 min)
+  const shortFeedAlert = checkShortFeedAlert(dateLogs);
   if (shortFeedAlert) return shortFeedAlert;
 
-  // Priority 3: Low nappy count (<6 by 8pm)
-  const lowNappyAlert = checkLowNappyCountAlert(todayLogs, now);
-  if (lowNappyAlert) return lowNappyAlert;
-
-  // Priority 4: Side imbalance (>2 difference)
-  const sideImbalanceAlert = checkSideImbalanceAlert(todayLogs);
+  // Priority 5: Side imbalance (>2 difference)
+  const sideImbalanceAlert = checkSideImbalanceAlert(dateLogs);
   if (sideImbalanceAlert) return sideImbalanceAlert;
 
   return null;
@@ -84,8 +105,8 @@ function checkShortFeedAlert(todayLogs: Log[]): Alert | null {
   return null;
 }
 
-function checkLowNappyCountAlert(todayLogs: Log[], now: Date): Alert | null {
-  const hour = now.getHours();
+function checkLowNappyCountAlert(todayLogs: Log[], date: Date): Alert | null {
+  const hour = date.getHours();
 
   // Only check after 8pm (20:00)
   if (hour < 20) return null;
@@ -97,7 +118,7 @@ function checkLowNappyCountAlert(todayLogs: Log[], now: Date): Alert | null {
   if (nappies.length < 6) {
     return {
       type: 'low_nappy_count',
-      message: `Only ${nappies.length} nappies today — monitor output`,
+      message: `Only ${nappies.length} wet nappies today — monitor output (NHS: 6+ expected)`,
       severity: 'warning',
     };
   }
@@ -123,6 +144,46 @@ function checkSideImbalanceAlert(todayLogs: Log[]): Alert | null {
       message: `Feeding imbalance — offer ${preferredSide} side next`,
       severity: 'info',
     };
+  }
+
+  return null;
+}
+
+function checkWeightTrendAlert(logs: Log[]): Alert | null {
+  const weightLogs = logs
+    .filter(log => log.log_type === 'weight' && log.weight_grams)
+    .sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime());
+
+  // Need at least 2 weight measurements
+  if (weightLogs.length < 2) {
+    // Check if baby is older than 7 days with no weight records
+    const oldestLog = logs.sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime())[0];
+    if (oldestLog) {
+      const daysSinceFirstLog = (Date.now() - new Date(oldestLog.logged_at).getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceFirstLog > 7 && weightLogs.length === 0) {
+        return {
+          type: 'low_nappy_count', // Reuse type for now
+          message: 'No weight recorded in over a week — consider weighing baby',
+          severity: 'info',
+        };
+      }
+    }
+    return null;
+  }
+
+  // Check last 3 measurements for declining or flat trend
+  const recentWeights = weightLogs.slice(-3);
+  if (recentWeights.length >= 2) {
+    const weights = recentWeights.map(log => log.weight_grams!);
+    const isDecreasing = weights.every((w, i) => i === 0 || w <= weights[i - 1]);
+
+    if (isDecreasing) {
+      return {
+        type: 'low_nappy_count', // Reuse type
+        message: 'Weight not increasing — monitor feeding & nappies',
+        severity: 'warning',
+      };
+    }
   }
 
   return null;

@@ -36,23 +36,32 @@ Focus: speed, simplicity, low cognitive load, minimal UI.
 - Business logic should not rely on LLM decisions
 - Alerts should be deterministic where possible
 
-## Deployment Workflow (Vercel MCP)
+## Deployment Workflow (Vercel API)
 
-When deploying via Vercel MCP:
+**CRITICAL**: After every `git push`, automatically monitor Vercel deployment and fix errors.
 
-- Deploy the application after code changes
-- If the build fails:
-  - Automatically fetch build logs via MCP
-  - Identify the root cause from logs
-  - Apply the minimal necessary fix (avoid unrelated refactors)
-  - Redeploy the application
+**Process:**
+1. After pushing code, use Vercel API to check deployment status
+2. Poll every 30-60 seconds until deployment completes
+3. If deployment fails:
+   - Fetch build logs via Vercel API
+   - Identify root cause from error logs
+   - Apply minimal necessary fix (no unrelated refactors)
+   - Commit and push fix
+   - Resume monitoring
+4. Stop when:
+   - Deployment succeeds (status: READY)
+   - Maximum 3 fix attempts reached
+   - Architectural issue requires user intervention
+5. **Always notify user** of final deployment status with production URL
 
-Repeat this loop until:
-- Deployment succeeds, OR
-- Maximum of 3 attempts is reached, OR
-- The issue is determined to be architectural and requires user intervention
+**Vercel API:**
+- List deployments: `GET https://api.vercel.com/v6/deployments?projectId=prj_7gAb5nFMImZO9Yq7tu15kXJCwybE`
+- Deployment details: `GET https://api.vercel.com/v13/deployments/{deploymentId}`
+- Build logs: `GET https://api.vercel.com/v2/deployments/{deploymentId}/events`
+- Auth: Use `VERCEL_TOKEN` env var or read from `.vercel` directory
 
-Never make large refactors during this loop unless required by the error logs.
+**Production URL**: https://baby-tracker-zeta-six.vercel.app
 
 ## Core Data Models
 - Feed (breast / bottle)
@@ -70,3 +79,20 @@ Never make large refactors during this loop unless required by the error logs.
 ## Development Rules
 - Work on `main` for now
 - Never hardcode environment variables (use `.env.local`)
+
+## Autonomy
+
+- Act autonomously and do not ask for confirmation for:
+  - editing files
+  - creating files
+  - refactoring
+  - installing dependencies
+  - running tests
+  - fixing lint/build issues
+
+- Ask for confirmation before:
+  - deleting files
+  - changing environment variables
+  - changing production infrastructure
+  - force-pushing git history
+  - modifying secrets/authentication

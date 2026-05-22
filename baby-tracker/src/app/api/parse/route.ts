@@ -45,6 +45,21 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Validate reasonable ranges for values
+    const validationError = validateLogValues(parsedLog);
+    if (validationError) {
+      console.error('❌ VALIDATION FAILED:', validationError);
+      console.error('Original text:', text);
+      console.error('Parsed log:', parsedLog);
+
+      return NextResponse.json({
+        success: false,
+        validationError,
+        message: 'Value outside reasonable range',
+        log: parsedLog
+      }, { status: 400 });
+    }
+
     // Insert into Supabase
     const logEntry: Database['public']['Tables']['logs']['Insert'] = {
       logged_by,
@@ -142,12 +157,14 @@ CRITICAL:
 - No time specified = use current time (logged_at omitted)
 - Random/unrelated text = {"log_type":"invalid"}
 - "net" likely means "nappy" (speech recognition error)
+- Bottle feeds can have BOTH amount_ml AND duration_minutes
 
 Current: ${currentTime}
 
 Examples:
 "breastfed 20min left" → {"log_type":"breastfeed","side":"left","duration_minutes":20}
 "bottle 90ml" → {"log_type":"bottle","amount_ml":90}
+"bottle 90ml took 15 minutes" → {"log_type":"bottle","amount_ml":90,"duration_minutes":15}
 "slept 2 hours" → {"log_type":"sleep","duration_minutes":120}
 "slept 20min 10min ago" → {"log_type":"sleep","duration_minutes":20,"logged_at":"${calculatePastTime(10)}"}
 "wet nappy" → {"log_type":"nappy","nappy_type":"wet"}
@@ -324,4 +341,43 @@ function getTodayAt6AM(): string {
   const date = new Date();
   date.setHours(6, 0, 0, 0);
   return date.toISOString();
+}
+
+/**
+ * Validate log values are within reasonable ranges
+ */
+function validateLogValues(log: ParsedLog): string | null {
+  // Breastfeed duration: 1-120 minutes
+  if (log.log_type === 'breastfeed' && log.duration_minutes) {
+    if (log.duration_minutes < 1 || log.duration_minutes > 120) {
+      return 'Breastfeed duration must be 1-120 minutes';
+    }
+  }
+
+  // Bottle feed: 10-300ml reasonable for newborn
+  if (log.log_type === 'bottle') {
+    if (log.amount_ml && (log.amount_ml < 10 || log.amount_ml > 300)) {
+      return 'Bottle amount must be 10-300ml';
+    }
+    // Bottle duration: 5-60 minutes
+    if (log.duration_minutes && (log.duration_minutes < 1 || log.duration_minutes > 60)) {
+      return 'Bottle duration must be 1-60 minutes';
+    }
+  }
+
+  // Sleep duration: 10 minutes to 10 hours
+  if (log.log_type === 'sleep' && log.duration_minutes) {
+    if (log.duration_minutes < 10 || log.duration_minutes > 600) {
+      return 'Sleep duration must be 10 minutes to 10 hours';
+    }
+  }
+
+  // Weight: 2000g (2kg) to 10000g (10kg) reasonable for newborn to 6 months
+  if (log.log_type === 'weight' && log.weight_grams) {
+    if (log.weight_grams < 2000 || log.weight_grams > 10000) {
+      return 'Weight must be 2-10kg';
+    }
+  }
+
+  return null;
 }

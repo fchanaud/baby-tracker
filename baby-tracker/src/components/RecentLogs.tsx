@@ -7,7 +7,10 @@ interface RecentLogsProps {
 }
 
 export default function RecentLogs({ logs }: RecentLogsProps) {
-  const recentLogs = logs.slice(0, 5);
+  // Sort by logged_at descending and take first 5
+  const recentLogs = logs
+    .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
+    .slice(0, 5);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -67,7 +70,14 @@ function LogEntry({ log }: { log: Log }) {
     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
       <span className="text-2xl">{emoji}</span>
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900 capitalize">{log.log_type}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-gray-900 capitalize">{log.log_type}</p>
+          {log.needs_review && (
+            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+              ⚠️
+            </span>
+          )}
+        </div>
         <p className="text-sm text-gray-600 truncate">{detail}</p>
       </div>
       <div className="text-right text-sm">

@@ -32,9 +32,16 @@ export default function LogDetailModal({ log, onClose }: LogDetailModalProps) {
           }}
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold capitalize" style={{ color: accent }}>
-              {log.log_type.replace('_', ' ')}
-            </h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold capitalize" style={{ color: accent }}>
+                {log.log_type.replace('_', ' ')}
+              </h2>
+              {log.needs_review && (
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-semibold">
+                  ⚠️ Needs Review
+                </span>
+              )}
+            </div>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
@@ -75,18 +82,18 @@ export default function LogDetailModal({ log, onClose }: LogDetailModalProps) {
           )}
 
           {/* Quantity (for bottle) */}
-          {log.log_type === 'bottle' && log.quantity_ml && (
+          {log.log_type === 'bottle' && log.amount_ml && (
             <div>
-              <div className="text-sm text-gray-500 font-medium mb-1">Quantity</div>
-              <div className="text-lg">{log.quantity_ml} ml</div>
+              <div className="text-sm text-gray-500 font-medium mb-1">Amount</div>
+              <div className="text-lg">{log.amount_ml} ml</div>
             </div>
           )}
 
           {/* Weight (for weight logs) */}
-          {log.log_type === 'weight' && log.weight_kg && (
+          {log.log_type === 'weight' && log.weight_grams && (
             <div>
               <div className="text-sm text-gray-500 font-medium mb-1">Weight</div>
-              <div className="text-lg">{log.weight_kg} kg</div>
+              <div className="text-lg">{(log.weight_grams / 1000).toFixed(2)} kg ({log.weight_grams}g)</div>
             </div>
           )}
 
@@ -99,11 +106,11 @@ export default function LogDetailModal({ log, onClose }: LogDetailModalProps) {
           )}
 
           {/* Notes */}
-          {log.notes && (
+          {log.note && (
             <div>
               <div className="text-sm text-gray-500 font-medium mb-1">Notes</div>
               <div className="text-base text-gray-700 bg-gray-50 p-3 rounded-lg">
-                {log.notes}
+                {log.note}
               </div>
             </div>
           )}
@@ -116,22 +123,13 @@ export default function LogDetailModal({ log, onClose }: LogDetailModalProps) {
         </div>
 
         {/* Actions */}
-        <div className="p-4 border-t border-gray-200 flex gap-3">
+        <div className="p-4 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 active:scale-95 transition-all"
-          >
-            Close
-          </button>
-          <button
-            onClick={() => {
-              // TODO: Implement edit functionality
-              console.log('Edit log:', log.id);
-            }}
-            className="flex-1 px-4 py-3 text-white rounded-lg font-medium hover:opacity-90 active:scale-95 transition-all"
+            className="w-full px-4 py-3 rounded-lg font-medium hover:opacity-90 active:scale-95 transition-all text-white"
             style={{ backgroundColor: accent }}
           >
-            Edit
+            Close
           </button>
         </div>
       </div>
