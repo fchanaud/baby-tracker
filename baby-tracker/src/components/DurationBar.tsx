@@ -58,7 +58,7 @@ export default function DurationBar({ log, maxDuration, onBarClick, onLongPress 
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
-      title={`${log.log_type} - ${formatDuration(log.duration_minutes)} at ${formatTime(log.logged_at)}`}
+      title={`${log.log_type} - ${formatDuration(log.duration_minutes ?? null)} at ${formatTime(log.logged_at)}`}
     >
       <div
         className="w-full h-full rounded-t-md shadow-md"
