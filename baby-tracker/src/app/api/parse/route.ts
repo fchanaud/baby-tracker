@@ -43,10 +43,26 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // If breastfeed without side, flag for review but allow it
+    // Validate breastfeed logs must have a side - ask for clarification
     if (parsedLog.log_type === 'breastfeed' && !parsedLog.side) {
-      parsedLog.needs_review = true;
-      console.warn('⚠️  Breastfeed log without side - flagged for review');
+      console.warn('⚠️  Breastfeed log without side - needs clarification');
+      return NextResponse.json({
+        success: false,
+        needsClarification: 'side',
+        message: 'Which side? Left or right?',
+        partialLog: parsedLog
+      }, { status: 400 });
+    }
+
+    // Validate nappy logs must have a type - ask for clarification
+    if (parsedLog.log_type === 'nappy' && !parsedLog.nappy_type) {
+      console.warn('⚠️  Nappy log without type - needs clarification');
+      return NextResponse.json({
+        success: false,
+        needsClarification: 'nappy_type',
+        message: 'What type? Wet only, poo only, or both?',
+        partialLog: parsedLog
+      }, { status: 400 });
     }
 
     // Validate reasonable ranges for values
@@ -130,8 +146,8 @@ async function parseWithClaude(text: string): Promise<ParseResult> {
   let correctedText = text;
   const speechErrors = [
     { wrong: /wet\s+net/gi, correct: 'wet nappy' },
-    { wrong: /dirty\s+net/gi, correct: 'dirty nappy' },
-    { wrong: /mixed\s+net/gi, correct: 'mixed nappy' },
+    { wrong: /poo\s+net/gi, correct: 'poo nappy' },
+    { wrong: /dirty\s+net/gi, correct: 'poo nappy' },
     { wrong: /\bnet\b/gi, correct: 'nappy' }, // standalone "net"
     { wrong: /\bnappy's?\b/gi, correct: 'nappy' }, // "nappies" or possessive
   ];
@@ -153,7 +169,8 @@ Fields: log_type, side?, duration_minutes?, amount_ml?, nappy_type?, note?, logg
 
 Types: "breastfeed"|"bottle"|"sleep"|"nappy"|"note"|"invalid"
 Side: "left"|"right"|"both" (breastfeed only - if mentioned use it, if not mentioned set needs_review:true)
-Nappy: "wet"|"dirty"|"mixed"
+Nappy: "wet"|"poo"|"both"
+Poo consistency: "liquid"|"normal"|"soft" (required if nappy_type is "poo" or "both")
 
 CRITICAL:
 - "fed" without ml/bottle = breastfeed (even if side not specified, set needs_review:true)
@@ -234,8 +251,8 @@ function parseWithRegex(text: string): ParsedLog {
   let correctedText = text;
   const speechErrors = [
     { wrong: /wet\s+net/gi, correct: 'wet nappy' },
-    { wrong: /dirty\s+net/gi, correct: 'dirty nappy' },
-    { wrong: /mixed\s+net/gi, correct: 'mixed nappy' },
+    { wrong: /poo\s+net/gi, correct: 'poo nappy' },
+    { wrong: /dirty\s+net/gi, correct: 'poo nappy' },
     { wrong: /\bnet\b/gi, correct: 'nappy' },
   ];
 
@@ -293,10 +310,10 @@ function parseWithRegex(text: string): ParsedLog {
 
   // Nappy patterns
   if (lower.includes('nappy') || lower.includes('diaper')) {
-    let nappy_type: 'wet' | 'dirty' | 'mixed' | undefined;
-    if (lower.includes('wet')) nappy_type = 'wet';
-    else if (lower.includes('dirty') || lower.includes('poo')) nappy_type = 'dirty';
-    else if (lower.includes('mixed')) nappy_type = 'mixed';
+    let nappy_type: 'wet' | 'poo' | 'both' | undefined;
+    if (lower.includes('wet') && !lower.includes('poo')) nappy_type = 'wet';
+    else if ((lower.includes('dirty') || lower.includes('poo')) && !lower.includes('wet')) nappy_type = 'poo';
+    else if (lower.includes('both') || (lower.includes('wet') && lower.includes('poo'))) nappy_type = 'both';
 
     return {
       log_type: 'nappy',

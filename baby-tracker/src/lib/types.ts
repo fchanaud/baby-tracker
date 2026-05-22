@@ -2,7 +2,8 @@
 export type LogType = 'breastfeed' | 'bottle' | 'sleep' | 'nappy' | 'note';
 export type ParsedLogType = LogType | 'invalid';
 export type Side = 'left' | 'right' | 'both';
-export type NappyType = 'wet' | 'dirty' | 'mixed';
+export type NappyType = 'wet' | 'poo' | 'both';
+export type PooConsistency = 'liquid' | 'normal' | 'soft';
 
 // Database log entry
 export interface Log {
@@ -19,6 +20,7 @@ export interface Log {
 
   // Nappy-specific
   nappy_type?: NappyType;
+  poo_consistency?: PooConsistency;
 
   // Note-specific
   note?: string;
@@ -34,6 +36,7 @@ export interface ParsedLog {
   duration_minutes?: number;
   amount_ml?: number;
   nappy_type?: NappyType;
+  poo_consistency?: PooConsistency;
   note?: string;
   logged_at?: string; // ISO 8601 timestamp
   needs_review?: boolean;

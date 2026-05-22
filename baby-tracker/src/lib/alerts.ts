@@ -108,7 +108,7 @@ function checkLowNappyCountAlert(todayLogs: Log[], date: Date): Alert | null {
   if (hour < 20) return null;
 
   const nappies = todayLogs.filter(log =>
-    log.log_type === 'nappy' && (log.nappy_type === 'wet' || log.nappy_type === 'mixed')
+    log.log_type === 'nappy' && (log.nappy_type === 'wet' || log.nappy_type === 'both')
   );
 
   if (nappies.length < 6) {

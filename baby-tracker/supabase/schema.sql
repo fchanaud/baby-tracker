@@ -14,7 +14,8 @@ CREATE TABLE logs (
   amount_ml INTEGER,
 
   -- Nappy-specific fields
-  nappy_type TEXT CHECK (nappy_type IN ('wet', 'dirty', 'mixed')),
+  nappy_type TEXT CHECK (nappy_type IN ('wet', 'poo', 'both')),
+  poo_consistency TEXT CHECK (poo_consistency IN ('liquid', 'normal', 'soft')),
 
   -- Weight-specific fields
   weight_grams INTEGER,

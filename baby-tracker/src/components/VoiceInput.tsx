@@ -16,7 +16,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingText, setPendingText] = useState<string | null>(null); // Store text waiting for clarification
-  const [needsSideInput, setNeedsSideInput] = useState(false); // Flag for missing side
+  const [pendingLog, setPendingLog] = useState<any>(null); // Store partial log
+  const [clarificationType, setClarificationType] = useState<'side' | 'nappy_type' | 'poo_consistency' | null>(null);
   const recognitionRef = useRef<any>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -78,9 +79,9 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         timeoutRef.current = null;
       }
 
-      // If we're waiting for side clarification, handle it
-      if (needsSideInput && pendingText) {
-        await handleSideResponse(text);
+      // If we're waiting for clarification, handle it
+      if (clarificationType && pendingLog) {
+        await handleClarificationResponse(text);
       } else {
         // Parse and save immediately (no confirmation)
         await parseAndSave(text);
@@ -134,28 +135,70 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
     }
   };
 
-  const handleSideResponse = async (sideText: string) => {
-    const lower = sideText.toLowerCase();
-    let side: 'left' | 'right' | null = null;
+  const handleClarificationResponse = async (responseText: string) => {
+    if (!clarificationType || !pendingLog) return;
 
-    if (lower.includes('left')) side = 'left';
-    else if (lower.includes('right')) side = 'right';
+    const lower = responseText.toLowerCase();
+    let updatedLog = { ...pendingLog };
 
-    if (!side) {
-      setError('❌ Please say "left" or "right"');
-      return;
+    if (clarificationType === 'side') {
+      let side: 'left' | 'right' | 'both' | null = null;
+      if (lower.includes('left')) side = 'left';
+      else if (lower.includes('right')) side = 'right';
+      else if (lower.includes('both')) side = 'both';
+
+      if (!side) {
+        setError('❌ Please say "left", "right", or "both"');
+        return;
+      }
+      updatedLog.side = side;
+    } else if (clarificationType === 'nappy_type') {
+      let nappy_type: 'wet' | 'poo' | 'both' | null = null;
+      if (lower.includes('wet') && !lower.includes('poo') && !lower.includes('both')) {
+        nappy_type = 'wet';
+      } else if ((lower.includes('poo') || lower.includes('dirty')) && !lower.includes('wet') && !lower.includes('both')) {
+        nappy_type = 'poo';
+        // Ask for consistency
+        setPendingLog(updatedLog);
+        setClarificationType('poo_consistency');
+        setValidationMessage('💩 What consistency? Liquid, normal, or soft?');
+        setError(null);
+        return;
+      } else if (lower.includes('both') || (lower.includes('wet') && lower.includes('poo'))) {
+        nappy_type = 'both';
+        // Ask for consistency
+        setPendingLog(updatedLog);
+        setClarificationType('poo_consistency');
+        setValidationMessage('💩 What consistency? Liquid, normal, or soft?');
+        setError(null);
+        return;
+      }
+
+      if (!nappy_type) {
+        setError('❌ Please say "wet only", "poo only", or "both"');
+        return;
+      }
+      updatedLog.nappy_type = nappy_type;
+    } else if (clarificationType === 'poo_consistency') {
+      let consistency: 'liquid' | 'normal' | 'soft' | null = null;
+      if (lower.includes('liquid') || lower.includes('watery')) consistency = 'liquid';
+      else if (lower.includes('normal') || lower.includes('regular')) consistency = 'normal';
+      else if (lower.includes('soft')) consistency = 'soft';
+
+      if (!consistency) {
+        setError('❌ Please say "liquid", "normal", or "soft"');
+        return;
+      }
+      updatedLog.poo_consistency = consistency;
     }
 
-    // Combine original text with side and retry
-    const combinedText = `${pendingText} ${side}`;
-    console.log('🔄 Retrying with side:', combinedText);
-
-    // Reset state
+    // Reset clarification state
+    setClarificationType(null);
+    setPendingLog(null);
     setPendingText(null);
-    setNeedsSideInput(false);
 
-    // Parse and save with complete info
-    await parseAndSave(combinedText);
+    // Save with complete info
+    await saveLog(updatedLog);
   };
 
   const parseAndSave = async (text: string) => {
@@ -179,21 +222,27 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
 
       console.log('📥 API Response:', result);
 
+      // Check for clarification needed
+      if (result.needsClarification) {
+        setPendingLog(result.partialLog);
+        setClarificationType(result.needsClarification);
+
+        if (result.needsClarification === 'side') {
+          setValidationMessage('🤱 Which side? Say "left", "right", or "both"');
+        } else if (result.needsClarification === 'nappy_type') {
+          setValidationMessage('💩 What type? Say "wet only", "poo only", or "both"');
+        }
+
+        setError(null);
+        setIsProcessing(false);
+        return;
+      }
+
       // Check for validation errors (400 status)
       if (!response.ok || result.validationError) {
         console.error('❌ VALIDATION ERROR:', result.validationError);
         console.error('Original text:', text);
         console.error('Parsed log:', result.log);
-
-        // Special handling for missing side on breastfeed
-        if (result.validationError === 'Missing side information') {
-          setPendingText(text);
-          setNeedsSideInput(true);
-          setValidationMessage('🤱 Which side? Say "left" or "right"');
-          setError(null);
-          setIsProcessing(false);
-          return;
-        }
 
         // Special handling for vague time that needs clarification
         if (result.needsTimeClarity) {
@@ -235,6 +284,46 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
     }
   };
 
+  const saveLog = async (log: any) => {
+    if (!identity) return;
+
+    try {
+      setIsProcessing(true);
+      setError(null);
+      setValidationMessage('🔄 Saving...');
+
+      const response = await fetch('/api/logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...log,
+          logged_by: identity,
+          logged_at: log.logged_at || new Date().toISOString(),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(`❌ ${result.error || 'Failed to save'}`);
+        setValidationMessage(null);
+        setIsProcessing(false);
+        return;
+      }
+
+      console.log('✅ Successfully logged:', result.log);
+      setValidationMessage(`✓ Logged successfully`);
+
+      // Success - notify parent to refresh
+      onLogCreated();
+      setIsProcessing(false);
+    } catch (error) {
+      console.error('Save error:', error);
+      setError('Failed to save. Try again.');
+      setIsProcessing(false);
+    }
+  };
+
   if (!isSupported) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
@@ -270,8 +359,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
               ? 'Processing...'
               : isListening
               ? 'Tap to stop'
-              : needsSideInput
-              ? 'Say left or right'
+              : clarificationType
+              ? 'Tap to answer'
               : 'Tap to speak'}
           </div>
         </div>

@@ -20,10 +20,10 @@ export default function MetricCards({ logs, allLogs, selectedDate, isToday }: Me
     .filter(log => log.log_type === 'sleep')
     .reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
 
-  // Nappies (wet or mixed only)
+  // Nappies (wet or both)
   const nappies = logs.filter(log =>
     log.log_type === 'nappy' &&
-    (log.nappy_type === 'wet' || log.nappy_type === 'mixed')
+    (log.nappy_type === 'wet' || log.nappy_type === 'both')
   ).length;
 
   // For today: show "Since Feed" and "Awake Since" / "Currently Sleeping"
@@ -73,14 +73,14 @@ export default function MetricCards({ logs, allLogs, selectedDate, isToday }: Me
       }
     }
   } else {
-    // Historical view: show dirty nappies
-    const dirtyNappies = logs.filter(log =>
+    // Historical view: show poo nappies
+    const pooNappies = logs.filter(log =>
       log.log_type === 'nappy' &&
-      (log.nappy_type === 'dirty' || log.nappy_type === 'mixed')
+      (log.nappy_type === 'poo' || log.nappy_type === 'both')
     ).length;
 
-    card4Title = 'Dirty Nappies';
-    card4Value = dirtyNappies.toString();
+    card4Title = 'Poo Nappies';
+    card4Value = pooNappies.toString();
     card4Subtitle = '';
     card4Color = 'bg-yellow-50 border-yellow-200';
   }
