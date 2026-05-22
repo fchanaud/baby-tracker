@@ -79,9 +79,13 @@ export function generateYAxisLabels(maxDuration: number): number[] {
 export function generateXAxisLabels(interval: number = 3): string[] {
   const labels: string[] = [];
 
-  for (let hour = 0; hour < 24; hour += interval) {
-    const hourStr = hour.toString().padStart(2, '0');
-    labels.push(`${hourStr}:00`);
+  for (let hour = 0; hour <= 24; hour += interval) {
+    if (hour === 24) {
+      labels.push('24:00');
+    } else {
+      const hourStr = hour.toString().padStart(2, '0');
+      labels.push(`${hourStr}:00`);
+    }
   }
 
   return labels;

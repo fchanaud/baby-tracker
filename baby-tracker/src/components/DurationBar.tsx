@@ -51,8 +51,8 @@ export default function DurationBar({ log, maxDuration, onBarClick, onLongPress 
       style={{
         left: `${position}%`,
         height: `${height}%`,
-        width: '8px',
-        transform: 'translateX(-4px)', // Center bar on position
+        width: '10px',
+        transform: 'translateX(-5px)', // Center bar on position
       }}
       onClick={handleClick}
       onTouchStart={handleTouchStart}
@@ -61,7 +61,7 @@ export default function DurationBar({ log, maxDuration, onBarClick, onLongPress 
       title={`${log.log_type} - ${formatDuration(log.duration_minutes ?? null)} at ${formatTime(log.logged_at)}`}
     >
       <div
-        className="w-full h-full rounded-t-md shadow-md"
+        className="w-full h-full rounded-t shadow-sm"
         style={{ backgroundColor: accent }}
       />
     </div>
