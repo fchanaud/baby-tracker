@@ -30,7 +30,7 @@ export default function MetricCards({ logs, allLogs, selectedDate, isToday }: Me
   // For historical dates: show "Dirty Nappies"
   let card4Title = 'Since Feed';
   let card4Value = 'N/A';
-  let card4Subtitle = 'Check at 3h+';
+  let card4Subtitle = '';
   let card4Color = 'bg-amber-50 border-amber-200';
 
   if (isToday) {
@@ -61,14 +61,14 @@ export default function MetricCards({ logs, allLogs, selectedDate, isToday }: Me
         const minutesAsleep = Math.floor((Date.now() - new Date(lastSleep.logged_at).getTime()) / (1000 * 60));
         card4Title = '😴 Sleeping';
         card4Value = `${Math.floor(minutesAsleep / 60)}h ${minutesAsleep % 60}m`;
-        card4Subtitle = 'Currently asleep';
+        card4Subtitle = '';
         card4Color = 'bg-blue-50 border-blue-200';
       } else {
         // Awake since last sleep ended
         const minutesAwake = Math.floor((Date.now() - sleepEndTime) / (1000 * 60));
         card4Title = 'Awake Since';
         card4Value = `${Math.floor(minutesAwake / 60)}h ${minutesAwake % 60}m`;
-        card4Subtitle = 'Time since sleep';
+        card4Subtitle = '';
         card4Color = 'bg-amber-50 border-amber-200';
       }
     }
@@ -81,7 +81,7 @@ export default function MetricCards({ logs, allLogs, selectedDate, isToday }: Me
 
     card4Title = 'Dirty Nappies';
     card4Value = dirtyNappies.toString();
-    card4Subtitle = 'Target: 1+';
+    card4Subtitle = '';
     card4Color = 'bg-yellow-50 border-yellow-200';
   }
 
@@ -90,21 +90,21 @@ export default function MetricCards({ logs, allLogs, selectedDate, isToday }: Me
       <MetricCard
         title="Feeds"
         value={feeds.toString()}
-        subtitle="Target: 8-12"
+        subtitle=""
         color="bg-green-50 border-green-200"
       />
 
       <MetricCard
         title="Total Sleep"
         value={`${Math.floor(totalSleepMinutes / 60)}h ${totalSleepMinutes % 60}m`}
-        subtitle="Target: ~16h"
+        subtitle=""
         color="bg-blue-50 border-blue-200"
       />
 
       <MetricCard
         title="Wet Nappies"
         value={nappies.toString()}
-        subtitle="Target: 6+"
+        subtitle=""
         color="bg-gray-50 border-gray-200"
       />
 
@@ -129,8 +129,8 @@ function MetricCard({ title, value, subtitle, color }: MetricCardProps) {
   return (
     <div className={`${color} border rounded-xl p-4`}>
       <p className="text-sm text-gray-600 font-medium mb-1">{title}</p>
-      <p className="text-3xl font-bold mb-1">{value}</p>
-      <p className="text-xs text-gray-500">{subtitle}</p>
+      <p className="text-3xl font-bold">{value}</p>
+      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
     </div>
   );
 }

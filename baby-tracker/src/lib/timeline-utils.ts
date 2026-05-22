@@ -54,17 +54,18 @@ export function calculateMaxDuration(logs: Array<{ duration_minutes?: number | n
 }
 
 /**
- * Generate Y-axis labels
+ * Generate Y-axis labels with unit suffix
  *
  * @param maxDuration - Maximum duration for Y-axis
- * @returns Array of label values (e.g., [0, 20, 40, 60, 80, 100, 120])
+ * @returns Array of label strings with 'm' suffix (e.g., ['0', '20m', '40m', '60m'])
  */
-export function generateYAxisLabels(maxDuration: number): number[] {
+export function generateYAxisLabels(maxDuration: number): string[] {
   const step = 20; // 20-minute increments
-  const labels: number[] = [];
+  const labels: string[] = [];
 
   for (let i = 0; i <= maxDuration; i += step) {
-    labels.push(i);
+    // Add 'm' suffix to all except 0
+    labels.push(i === 0 ? '0' : `${i}m`);
   }
 
   return labels;
