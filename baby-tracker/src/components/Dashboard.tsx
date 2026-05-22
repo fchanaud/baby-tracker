@@ -1,17 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLogs } from '@/hooks/useLogs';
 import { getAlerts } from '@/lib/alerts';
+import { Log } from '@/lib/types';
 import IdentityPicker from './IdentityPicker';
 import VoiceInput from './VoiceInput';
 import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
-import TimelineLanes from './TimelineLanes';
+import DurationBarTimeline from './DurationBarTimeline';
 
 export default function Dashboard() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
   const { logs, refresh } = useLogs();
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
 
   // Show identity picker if not set
   if (identityLoading) {
@@ -58,8 +62,22 @@ export default function Dashboard() {
         {/* Metrics */}
         <MetricCards logs={logs} />
 
-        {/* Timeline with Lanes */}
-        <TimelineLanes logs={logs} />
+        {/* Duration Bar Timeline */}
+        <DurationBarTimeline
+          logs={logs}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+          onBarClick={(log) => {
+            setSelectedLog(log);
+            // TODO: Show detail modal
+            console.log('Bar clicked:', log);
+          }}
+          onBarLongPress={(log) => {
+            setSelectedLog(log);
+            // TODO: Show edit/delete menu
+            console.log('Bar long pressed:', log);
+          }}
+        />
 
         {/* User Info */}
         <div className="text-center text-sm text-gray-500 pb-4">
