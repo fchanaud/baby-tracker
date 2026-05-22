@@ -37,12 +37,12 @@ export function getBarHeight(durationMinutes: number | null, maxDuration: number
  * Calculate maximum duration from logs for auto-scaling Y-axis
  * Rounds up to next 20-minute increment
  *
- * @param logs - Array of logs
+ * @param logs - Array of logs with duration_minutes property
  * @returns Maximum duration rounded to nearest 20min, minimum 120
  */
-export function calculateMaxDuration(logs: Array<{ duration_minutes: number | null }>): number {
+export function calculateMaxDuration(logs: Array<{ duration_minutes: number | null | undefined }>): number {
   const durations = logs
-    .map(log => log.duration_minutes || 0)
+    .map(log => log.duration_minutes ?? 0)
     .filter(d => d > 0);
 
   if (durations.length === 0) return 120;
