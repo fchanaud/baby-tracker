@@ -31,6 +31,18 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // Check for vague time references that need clarification
+    const hasVagueTime = /\b(last night|this morning|this afternoon|this evening|earlier|a while ago|today|tonight|yesterday)\b/i.test(text);
+    if (hasVagueTime && !parsedLog.logged_at) {
+      console.warn('⏰ VAGUE TIME REFERENCE - needs clarification');
+      return NextResponse.json({
+        success: false,
+        needsTimeClarity: true,
+        message: 'When did this happen? Please be more specific (e.g., "2 hours ago" or "at 3pm")',
+        partialLog: parsedLog
+      }, { status: 400 });
+    }
+
     // If breastfeed without side, flag for review but allow it
     if (parsedLog.log_type === 'breastfeed' && !parsedLog.side) {
       parsedLog.needs_review = true;
@@ -146,7 +158,8 @@ Nappy: "wet"|"dirty"|"mixed"
 CRITICAL:
 - "fed" without ml/bottle = breastfeed (even if side not specified, set needs_review:true)
 - "for X min" = duration, "X min ago" = logged_at timestamp
-- No time specified = use current time (logged_at omitted)
+- VAGUE TIME (last night, this morning, earlier, a while ago) = needs_review:true + omit logged_at
+- NO time specified = use current time (logged_at omitted)
 - Random/unrelated text = {"log_type":"invalid"}
 - "net" likely means "nappy" (speech recognition error)
 - Bottle feeds can have BOTH amount_ml AND duration_minutes

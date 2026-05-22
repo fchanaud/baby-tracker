@@ -195,6 +195,14 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
           return;
         }
 
+        // Special handling for vague time that needs clarification
+        if (result.needsTimeClarity) {
+          setError(`⏰ ${result.message}`);
+          setValidationMessage(null);
+          setIsProcessing(false);
+          return;
+        }
+
         // Show error to user with specific message from API
         setError(`❌ ${result.validationError || 'Failed to save'}. ${result.message || ''}`);
         setValidationMessage(null);
