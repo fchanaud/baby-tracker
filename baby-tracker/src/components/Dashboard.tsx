@@ -10,6 +10,7 @@ import VoiceInput from './VoiceInput';
 import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
 import DurationBarTimeline from './DurationBarTimeline';
+import LogDetailModal from './LogDetailModal';
 
 export default function Dashboard() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
@@ -69,14 +70,16 @@ export default function Dashboard() {
           onDateChange={setSelectedDate}
           onBarClick={(log) => {
             setSelectedLog(log);
-            // TODO: Show detail modal
-            console.log('Bar clicked:', log);
           }}
           onBarLongPress={(log) => {
             setSelectedLog(log);
-            // TODO: Show edit/delete menu
-            console.log('Bar long pressed:', log);
           }}
+        />
+
+        {/* Detail Modal */}
+        <LogDetailModal
+          log={selectedLog}
+          onClose={() => setSelectedLog(null)}
         />
 
         {/* User Info */}
