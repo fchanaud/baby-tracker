@@ -72,26 +72,7 @@ https://www.nhs.uk/baby/caring-for-a-newborn/helping-your-baby-to-sleep/
 
 ---
 
-# 4. Weight rules
-
-## Expected pattern
-- Initial weight loss after birth is normal
-- Followed by steady weight gain over time
-
-## WARNING CONDITIONS
-Trigger "weight concern pattern" if:
-- No recorded weight trend over time
-- OR flat / declining trend across multiple checks
-
-Note:
-Weight must always be interpreted alongside feeding + nappies.
-
-Source:
-https://www.nhs.uk/pregnancy/labour-and-birth/early-days/
-
----
-
-# 5. Combined wellbeing scoring logic (core system rule)
+# 4. Combined wellbeing scoring logic (core system rule)
 
 ## A baby is likely within expected range if:
 
@@ -99,7 +80,6 @@ https://www.nhs.uk/pregnancy/labour-and-birth/early-days/
 - Regular feeding activity throughout 24h
 - At least 1 dirty nappy/day (context dependent)
 - No persistent long gaps between feeds
-- Weight trend is stable or increasing over time
 
 ---
 
@@ -108,7 +88,6 @@ https://www.nhs.uk/pregnancy/labour-and-birth/early-days/
 - Wet nappies below 6/day
 - Reduced feeding frequency vs baseline pattern
 - Persistent short/low feeds
-- Missing weight trend data
 
 ---
 
@@ -116,7 +95,6 @@ https://www.nhs.uk/pregnancy/labour-and-birth/early-days/
 
 - Wet nappies < 6/day + low feeding activity
 - AND symptoms persist across multiple logs (24–48h)
-- AND weight trend unavailable or declining
 
 ---
 
@@ -133,17 +111,16 @@ Claude MUST:
 
 ---
 
-# 7. Key evaluation priority order (important for your app)
+# 5. Key evaluation priority order (important for your app)
 
 1. Wet nappies (highest signal)
 2. Feeding frequency + duration/volume
-3. Weight trend (longitudinal signal)
-4. Dirty nappies (supporting signal)
-5. Sleep (context only, never diagnostic)
+3. Dirty nappies (supporting signal)
+4. Sleep (context only, never diagnostic)
 
 ---
 
-# 8. System intent
+# 6. System intent
 
 This file is used to:
 - compute dashboard alerts

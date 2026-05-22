@@ -21,22 +21,6 @@ export default function Dashboard() {
   const [selectedLog, setSelectedLog] = useState<Log | null>(null);
   const [showReportsModal, setShowReportsModal] = useState(false);
 
-  // Show identity picker if not set
-  if (identityLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-4xl mb-4">👶</div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!identity) {
-    return <IdentityPicker onSelect={setIdentity} />;
-  }
-
   // Check if selected date is today
   const isToday = useMemo(() => {
     const today = new Date();
@@ -69,6 +53,22 @@ export default function Dashboard() {
   const sideAlternation = useMemo(() => {
     return getSideAlternationSuggestion(logs);
   }, [logs]);
+
+  // Show identity picker if not set (after all hooks)
+  if (identityLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="text-4xl mb-4">👶</div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!identity) {
+    return <IdentityPicker onSelect={setIdentity} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">

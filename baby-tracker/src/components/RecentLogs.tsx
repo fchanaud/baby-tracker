@@ -56,10 +56,6 @@ function LogEntry({ log }: { log: Log }) {
       emoji = '💩';
       detail = log.nappy_type || '';
       break;
-    case 'weight':
-      emoji = '⚖️';
-      detail = `${log.weight_grams}g`;
-      break;
     case 'note':
       emoji = '📝';
       detail = log.note?.substring(0, 30) || '';

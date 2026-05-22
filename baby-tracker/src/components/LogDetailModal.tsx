@@ -89,14 +89,6 @@ export default function LogDetailModal({ log, onClose }: LogDetailModalProps) {
             </div>
           )}
 
-          {/* Weight (for weight logs) */}
-          {log.log_type === 'weight' && log.weight_grams && (
-            <div>
-              <div className="text-sm text-gray-500 font-medium mb-1">Weight</div>
-              <div className="text-lg">{(log.weight_grams / 1000).toFixed(2)} kg ({log.weight_grams}g)</div>
-            </div>
-          )}
-
           {/* Nappy type */}
           {log.log_type === 'nappy' && log.nappy_type && (
             <div>

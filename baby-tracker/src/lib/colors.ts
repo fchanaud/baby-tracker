@@ -17,10 +17,6 @@ export const colors = {
     50: '#FFF9E4',
     500: '#FFB800',
   },
-  weight: {
-    50: '#E4FFE4',
-    500: '#00D084',
-  },
   note: {
     50: '#E4F4FF',
     500: '#0088FF',
@@ -49,7 +45,6 @@ export const activityColors: Record<string, { bg: string; accent: string }> = {
   bottle: { bg: colors.feed[50], accent: colors.feed[500] },
   sleep: { bg: colors.sleep[50], accent: colors.sleep[500] },
   nappy: { bg: colors.nappy[50], accent: colors.nappy[500] },
-  weight: { bg: colors.weight[50], accent: colors.weight[500] },
   note: { bg: colors.note[50], accent: colors.note[500] },
 };
 

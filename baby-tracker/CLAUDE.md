@@ -9,12 +9,11 @@
 
 ## Product Intent
 Baby tracking app for sleep-deprived parents.  
-Goal: allow logging baby activity in <5 seconds, one-handed, mobile-first.  
-Focus: speed, simplicity, low cognitive load, minimal UI.
+Goal: allow logging baby activity, one-handed, mobile-first.  
+Focus: simplicity, low cognitive load, minimal UI.
 
 ## UX Rules
 - One-handed use only
-- All core actions ≤ 5 seconds
 - Timeline-first dashboard (not form-heavy UI)
 - Minimal UI, no clutter
 - Tap targets ≥ 48px
@@ -67,14 +66,12 @@ Focus: speed, simplicity, low cognitive load, minimal UI.
 - Feed (breast / bottle)
 - Sleep
 - Nappy
-- Weight
 - Note
 
 ## Non-Goals (v1)
 - No medical diagnosis
 - No push notifications
 - No multi-baby support
-- No WHO growth charts
 
 ## Development Rules
 - Work on `main` for now
@@ -82,13 +79,14 @@ Focus: speed, simplicity, low cognitive load, minimal UI.
 
 ## Autonomy
 
-- Act autonomously and do not ask for confirmation for:
+- Act autonomously and do not ask for confirmation within claude for:
   - editing files
   - creating files
   - refactoring
   - installing dependencies
   - running tests
   - fixing lint/build issues
+  - do curl requests for any service
 
 - Ask for confirmation before:
   - deleting files
@@ -96,3 +94,10 @@ Focus: speed, simplicity, low cognitive load, minimal UI.
   - changing production infrastructure
   - force-pushing git history
   - modifying secrets/authentication
+
+## Feature Implementation Workflow
+
+Every time a feature is implemented:
+1. **Crash test** the feature in the running app
+2. **Fix all bugs** that arise from testing
+3. **Commit the work** only after the feature is verified working

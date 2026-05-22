@@ -9,8 +9,12 @@ export type Identity = 'Franklin' | 'Clémence' | null;
 export function useIdentity() {
   const [identity, setIdentityState] = useState<Identity>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    // Mark component as mounted (client-side only)
+    setIsMounted(true);
+
     // Load from localStorage on mount
     const stored = localStorage.getItem(IDENTITY_KEY);
     if (stored === 'Franklin' || stored === 'Clémence') {
@@ -28,5 +32,6 @@ export function useIdentity() {
     setIdentityState(newIdentity);
   };
 
-  return { identity, setIdentity, isLoading };
+  // Always return loading during SSR to prevent hydration mismatch
+  return { identity, setIdentity, isLoading: !isMounted || isLoading };
 }

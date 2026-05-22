@@ -1,7 +1,7 @@
 # Baby Tracker — PRD
 
 ## Overview
-A mobile-first web app for Franklin and Clémence to log and monitor their newborn baby's daily activity for the first 6 months. Built for sleep-deprived parents: every interaction must be completable in under 5 seconds, one-handed, on a phone.
+A mobile-first web app for Franklin and Clémence to log and monitor their newborn baby's daily activity for the first 6 months. Built for sleep-deprived parents: one-handed, mobile-first voice input.
 The system now includes a NHS-based evaluation layer used to interpret baby logs and generate meaningful health indicators (non-diagnostic).
 
 ## Users
@@ -18,7 +18,6 @@ The system now includes a NHS-based evaluation layer used to interpret baby logs
 | Bottle feed | amount_ml, duration_minutes, logged_by, logged_at |
 | Sleep | duration_minutes, logged_by, logged_at |
 | Nappy | nappy_type (wet/dirty/mixed), logged_by, logged_at |
-| Weight | weight_grams, logged_by, logged_at |
 | Note | note (freetext), logged_by, logged_at |
 
 - Clémence plans to breastfeed primarily; bottle may be introduced later — both must be supported from day one
@@ -47,8 +46,6 @@ The parser must correctly handle all of the following:
 "nappy change, wet"
 "dirty nappy just now"
 "mixed nappy"
-"she weighs 3.8 kilos"
-"weight check: 4100 grams"
 "note: she seemed gassy after the feed"
 "fed right tit 8 mins — not sure she latched well"
 "quick feed left side maybe 5 minutes, around 6am"

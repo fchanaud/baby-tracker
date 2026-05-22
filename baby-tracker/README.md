@@ -1,6 +1,6 @@
 # Baby Tracker
 
-Mobile-first baby activity tracking app for sleep-deprived parents. Log feeds, sleep, nappies, and weight via voice input in under 5 seconds.
+Mobile-first baby activity tracking app for sleep-deprived parents. Log feeds, sleep, nappies, and weight via voice input.
 
 ## Features
 

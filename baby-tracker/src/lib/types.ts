@@ -1,5 +1,5 @@
 // Core log types
-export type LogType = 'breastfeed' | 'bottle' | 'sleep' | 'nappy' | 'weight' | 'note';
+export type LogType = 'breastfeed' | 'bottle' | 'sleep' | 'nappy' | 'note';
 export type ParsedLogType = LogType | 'invalid';
 export type Side = 'left' | 'right' | 'both';
 export type NappyType = 'wet' | 'dirty' | 'mixed';
@@ -20,9 +20,6 @@ export interface Log {
   // Nappy-specific
   nappy_type?: NappyType;
 
-  // Weight-specific
-  weight_grams?: number;
-
   // Note-specific
   note?: string;
 
@@ -37,7 +34,6 @@ export interface ParsedLog {
   duration_minutes?: number;
   amount_ml?: number;
   nappy_type?: NappyType;
-  weight_grams?: number;
   note?: string;
   logged_at?: string; // ISO 8601 timestamp
   needs_review?: boolean;

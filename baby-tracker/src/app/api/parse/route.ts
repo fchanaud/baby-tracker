@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         validationError: 'Not related to baby activities',
-        message: 'Please say something about feeding, sleep, nappy, or weight',
+        message: 'Please say something about feeding, sleep, or nappy',
         log: parsedLog
       }, { status: 400 });
     }
@@ -68,7 +68,6 @@ export async function POST(request: NextRequest) {
       duration_minutes: parsedLog.duration_minutes ?? null,
       amount_ml: parsedLog.amount_ml ?? null,
       nappy_type: parsedLog.nappy_type ?? null,
-      weight_grams: parsedLog.weight_grams ?? null,
       note: parsedLog.note ?? null,
       logged_at: parsedLog.logged_at ?? new Date().toISOString(),
       needs_review: parsedLog.needs_review ?? false,
@@ -144,11 +143,11 @@ async function parseWithClaude(text: string): Promise<ParseResult> {
   // Compressed prompt to minimize tokens while maintaining accuracy
   const systemPrompt = `Parse baby activity to JSON. Output ONLY JSON, no markdown.
 
-FIRST: Check if input is baby-related (feed, sleep, nappy, weight). If NOT related to baby care, output: {"log_type":"invalid","needs_review":false}
+FIRST: Check if input is baby-related (feed, sleep, nappy). If NOT related to baby care, output: {"log_type":"invalid","needs_review":false}
 
-Fields: log_type, side?, duration_minutes?, amount_ml?, nappy_type?, weight_grams?, note?, logged_at?, needs_review
+Fields: log_type, side?, duration_minutes?, amount_ml?, nappy_type?, note?, logged_at?, needs_review
 
-Types: "breastfeed"|"bottle"|"sleep"|"nappy"|"weight"|"note"|"invalid"
+Types: "breastfeed"|"bottle"|"sleep"|"nappy"|"note"|"invalid"
 Side: "left"|"right"|"both" (breastfeed only, REQUIRED - if missing, set needs_review:true)
 Nappy: "wet"|"dirty"|"mixed"
 
@@ -169,7 +168,6 @@ Examples:
 "slept 20min 10min ago" → {"log_type":"sleep","duration_minutes":20,"logged_at":"${calculatePastTime(10)}"}
 "wet nappy" → {"log_type":"nappy","nappy_type":"wet"}
 "wet net" → {"log_type":"nappy","nappy_type":"wet"}
-"weighs 3.8kg" → {"log_type":"weight","weight_grams":3800}
 "hello world" → {"log_type":"invalid"}
 "what's the weather" → {"log_type":"invalid"}
 
@@ -300,22 +298,6 @@ function parseWithRegex(text: string): ParsedLog {
     };
   }
 
-  // Weight patterns
-  if (lower.includes('weight') || lower.includes('weigh') || lower.includes('kg') || lower.includes('kilo') || lower.includes('gram')) {
-    const kgMatch = text.match(/(\d+\.?\d*)\s*(kg|kilo)/i);
-    const gramsMatch = text.match(/(\d+)\s*(g|gram)/i);
-
-    let weight_grams: number | undefined;
-    if (kgMatch) weight_grams = Math.round(parseFloat(kgMatch[1]) * 1000);
-    else if (gramsMatch) weight_grams = parseInt(gramsMatch[1]);
-
-    return {
-      log_type: 'weight',
-      weight_grams,
-      needs_review: true,
-    };
-  }
-
   // Default to note
   return {
     log_type: 'note',
@@ -369,13 +351,6 @@ function validateLogValues(log: ParsedLog): string | null {
   if (log.log_type === 'sleep' && log.duration_minutes) {
     if (log.duration_minutes < 10 || log.duration_minutes > 600) {
       return 'Sleep duration must be 10 minutes to 10 hours';
-    }
-  }
-
-  // Weight: 2000g (2kg) to 10000g (10kg) reasonable for newborn to 6 months
-  if (log.log_type === 'weight' && log.weight_grams) {
-    if (log.weight_grams < 2000 || log.weight_grams > 10000) {
-      return 'Weight must be 2-10kg';
     }
   }
 

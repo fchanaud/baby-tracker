@@ -17,7 +17,6 @@ Each activity type has a soft pastel color for emotional warmth:
 | Feed        | #FFE4E4   | #FF6B9D | Breastfeed & bottle feeds      |
 | Sleep       | #E4E4FF   | #6B5FFF | Naps & night sleep             |
 | Nappy       | #FFF9E4   | #FFB800 | Diaper changes                 |
-| Weight      | #E4FFE4   | #00D084 | Weight measurements            |
 | Note        | #E4F4FF   | #0088FF | General notes                  |
 
 **Usage:**
