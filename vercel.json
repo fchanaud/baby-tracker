@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd baby-tracker && npm run build",
+  "devCommand": "cd baby-tracker && npm run dev",
+  "installCommand": "cd baby-tracker && npm install",
+  "framework": "nextjs",
+  "outputDirectory": "baby-tracker/.next"
+}
