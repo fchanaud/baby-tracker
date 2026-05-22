@@ -108,6 +108,24 @@ interface ParseResult {
 async function parseWithClaude(text: string): Promise<ParseResult> {
   const currentTime = new Date().toISOString();
 
+  // Preprocess common speech recognition errors
+  let correctedText = text;
+  const speechErrors = [
+    { wrong: /wet\s+net/gi, correct: 'wet nappy' },
+    { wrong: /dirty\s+net/gi, correct: 'dirty nappy' },
+    { wrong: /mixed\s+net/gi, correct: 'mixed nappy' },
+    { wrong: /\bnet\b/gi, correct: 'nappy' }, // standalone "net"
+    { wrong: /\bnappy's?\b/gi, correct: 'nappy' }, // "nappies" or possessive
+  ];
+
+  for (const error of speechErrors) {
+    correctedText = correctedText.replace(error.wrong, error.correct);
+  }
+
+  if (correctedText !== text) {
+    console.log(`[Parse] Speech correction: "${text}" → "${correctedText}"`);
+  }
+
   // Compressed prompt to minimize tokens while maintaining accuracy
   const systemPrompt = `Parse baby activity to JSON. Output ONLY JSON, no markdown.
 
@@ -123,6 +141,7 @@ CRITICAL:
 - "for X min" = duration, "X min ago" = logged_at timestamp
 - No time specified = use current time (logged_at omitted)
 - Random/unrelated text = {"log_type":"invalid"}
+- "net" likely means "nappy" (speech recognition error)
 
 Current: ${currentTime}
 
@@ -132,6 +151,7 @@ Examples:
 "slept 2 hours" → {"log_type":"sleep","duration_minutes":120}
 "slept 20min 10min ago" → {"log_type":"sleep","duration_minutes":20,"logged_at":"${calculatePastTime(10)}"}
 "wet nappy" → {"log_type":"nappy","nappy_type":"wet"}
+"wet net" → {"log_type":"nappy","nappy_type":"wet"}
 "weighs 3.8kg" → {"log_type":"weight","weight_grams":3800}
 "hello world" → {"log_type":"invalid"}
 "what's the weather" → {"log_type":"invalid"}
@@ -141,6 +161,7 @@ Set needs_review:true if uncertain or missing required fields.`;
   try {
     const anthropic = getAnthropicClient();
     console.log('[Parse] Input text:', text);
+    console.log('[Parse] Corrected text:', correctedText);
 
     const message = await anthropic.messages.create({
       model: CLAUDE_MODEL,
@@ -148,7 +169,7 @@ Set needs_review:true if uncertain or missing required fields.`;
       messages: [
         {
           role: 'user',
-          content: text,
+          content: correctedText, // Use corrected text
         },
       ],
       system: systemPrompt,
@@ -187,7 +208,20 @@ Set needs_review:true if uncertain or missing required fields.`;
 }
 
 function parseWithRegex(text: string): ParsedLog {
-  const lower = text.toLowerCase();
+  // Apply same speech recognition corrections
+  let correctedText = text;
+  const speechErrors = [
+    { wrong: /wet\s+net/gi, correct: 'wet nappy' },
+    { wrong: /dirty\s+net/gi, correct: 'dirty nappy' },
+    { wrong: /mixed\s+net/gi, correct: 'mixed nappy' },
+    { wrong: /\bnet\b/gi, correct: 'nappy' },
+  ];
+
+  for (const error of speechErrors) {
+    correctedText = correctedText.replace(error.wrong, error.correct);
+  }
+
+  const lower = correctedText.toLowerCase();
 
   // Breastfeed patterns
   if (lower.includes('breastfed') || lower.includes('fed') || lower.includes('tit')) {
