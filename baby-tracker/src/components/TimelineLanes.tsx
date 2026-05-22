@@ -7,7 +7,7 @@ interface TimelineLanesProps {
   logs: Log[];
 }
 
-type ActivityFilter = 'feed' | 'sleep' | 'nappy' | 'weight' | 'all';
+type ActivityFilter = 'feed' | 'sleep' | 'nappy' | 'all';
 
 export default function TimelineLanes({ logs }: TimelineLanesProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -37,7 +37,6 @@ export default function TimelineLanes({ logs }: TimelineLanesProps) {
   const feedLogs = filteredLogs.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle');
   const sleepLogs = filteredLogs.filter(l => l.log_type === 'sleep');
   const nappyLogs = filteredLogs.filter(l => l.log_type === 'nappy');
-  const weightLogs = filteredLogs.filter(l => l.log_type === 'weight');
 
   const goToPreviousDay = () => {
     const prev = new Date(selectedDate);
@@ -129,13 +128,6 @@ export default function TimelineLanes({ logs }: TimelineLanesProps) {
           color="bg-gray-100"
           activeColor="bg-gray-500 text-white"
         />
-        <FilterButton
-          active={filter === 'weight'}
-          onClick={() => setFilter('weight')}
-          label="⚖️ Weight"
-          color="bg-purple-100"
-          activeColor="bg-purple-500 text-white"
-        />
       </div>
 
       {/* Timeline with Lanes */}
@@ -190,18 +182,6 @@ export default function TimelineLanes({ logs }: TimelineLanesProps) {
               onSelectLog={setSelectedLog}
             />
           )}
-
-          {/* Weight Lane */}
-          {(filter === 'all' || filter === 'weight') && (
-            <Lane
-              label="⚖️ Weight"
-              logs={weightLogs}
-              color="bg-purple-400"
-              dayStart={dayStart}
-              selectedLog={selectedLog}
-              onSelectLog={setSelectedLog}
-            />
-          )}
         </div>
       </div>
 
@@ -223,9 +203,6 @@ export default function TimelineLanes({ logs }: TimelineLanesProps) {
             )}
             {selectedLog.nappy_type && (
               <p><strong>Nappy:</strong> {selectedLog.nappy_type}</p>
-            )}
-            {selectedLog.weight_grams && (
-              <p><strong>Weight:</strong> {(selectedLog.weight_grams / 1000).toFixed(2)} kg</p>
             )}
             {selectedLog.note && (
               <p><strong>Note:</strong> {selectedLog.note}</p>
@@ -348,7 +325,6 @@ function ActivityBlock({
     if (log.log_type === 'bottle') return '🍼';
     if (log.log_type === 'sleep') return '😴';
     if (log.log_type === 'nappy') return '💩';
-    if (log.log_type === 'weight') return '⚖️';
     return '📝';
   };
 

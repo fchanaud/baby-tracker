@@ -211,7 +211,6 @@ function ActivityBlock({
     if (log.log_type === 'breastfeed' || log.log_type === 'bottle') return 'bg-green-400 hover:bg-green-500';
     if (log.log_type === 'sleep') return 'bg-blue-400 hover:bg-blue-500';
     if (log.log_type === 'nappy') return 'bg-gray-400 hover:bg-gray-500';
-    if (log.log_type === 'weight') return 'bg-purple-400 hover:bg-purple-500';
     return 'bg-yellow-400 hover:bg-yellow-500';
   };
 
@@ -220,7 +219,6 @@ function ActivityBlock({
     if (log.log_type === 'bottle') return '🍼';
     if (log.log_type === 'sleep') return '😴';
     if (log.log_type === 'nappy') return '💩';
-    if (log.log_type === 'weight') return '⚖️';
     return '📝';
   };
 

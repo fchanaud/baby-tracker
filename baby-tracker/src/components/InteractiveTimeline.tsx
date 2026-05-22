@@ -229,7 +229,6 @@ function TimelineEntry({
     if (type === 'bottle') return '🍼';
     if (type === 'sleep') return '😴';
     if (type === 'nappy') return '💩';
-    if (type === 'weight') return '⚖️';
     return '📝';
   };
 
@@ -253,9 +252,6 @@ function TimelineEntry({
     }
     if (log.log_type === 'nappy') {
       return log.nappy_type || 'change';
-    }
-    if (log.log_type === 'weight') {
-      return `${log.weight_grams ? (log.weight_grams / 1000).toFixed(1) : '?'} kg`;
     }
     return log.note || 'note';
   };

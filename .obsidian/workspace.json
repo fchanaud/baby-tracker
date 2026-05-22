@@ -205,7 +205,7 @@
               },
               "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠐ Summarize root markdown files"
+              "title": "Terminal: ⠂ Summarize root markdown files"
             }
           },
           {
@@ -228,7 +228,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 571.5
+    "width": 716.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -242,10 +242,10 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "01493ec42d64b668",
+  "active": "3a4404d61509c4b2",
   "lastOpenFiles": [
-    "baby-tracker/src/components/DurationBar.tsx.tmp.85015.21cfd89c9f6e",
     "baby-tracker/CLAUDE.md",
+    "baby-tracker/src/components/DurationBar.tsx.tmp.85015.21cfd89c9f6e",
     "baby-tracker/src/hooks/useBabyProfile.ts",
     "baby-tracker/src/components/BabyProfile.tsx",
     "baby-tracker/src/app/profile/page.tsx",
@@ -255,7 +255,6 @@
     "baby-tracker/node_modules/playwright-core/ThirdPartyNotices.txt",
     "baby-tracker/node_modules/playwright-core/types/types.d.ts",
     "baby-tracker/node_modules/playwright-core/types/structs.d.ts",
-    "baby-tracker/node_modules/playwright-core/types/protocol.d.ts",
     "baby-tracker/node_modules/playwright-core/README.md",
     "baby-tracker/node_modules/playwright/README.md",
     "baby-tracker/node_modules/@tybys/wasm-util/README.md",

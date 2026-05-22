@@ -38,11 +38,7 @@ export function getAlerts(logs: Log[], selectedDate: Date = new Date()): Alert |
     if (noFeedAlert) return noFeedAlert;
   }
 
-  // Priority 3: Weight trend concerns
-  const weightAlert = checkWeightTrendAlert(logs);
-  if (weightAlert) return weightAlert;
-
-  // Priority 4: Short feed (<10 min)
+  // Priority 3: Short feed (<10 min)
   const shortFeedAlert = checkShortFeedAlert(dateLogs);
   if (shortFeedAlert) return shortFeedAlert;
 
@@ -144,46 +140,6 @@ function checkSideImbalanceAlert(todayLogs: Log[]): Alert | null {
       message: `Feeding imbalance — offer ${preferredSide} side next`,
       severity: 'info',
     };
-  }
-
-  return null;
-}
-
-function checkWeightTrendAlert(logs: Log[]): Alert | null {
-  const weightLogs = logs
-    .filter(log => log.log_type === 'weight' && log.weight_grams)
-    .sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime());
-
-  // Need at least 2 weight measurements
-  if (weightLogs.length < 2) {
-    // Check if baby is older than 7 days with no weight records
-    const oldestLog = logs.sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime())[0];
-    if (oldestLog) {
-      const daysSinceFirstLog = (Date.now() - new Date(oldestLog.logged_at).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSinceFirstLog > 7 && weightLogs.length === 0) {
-        return {
-          type: 'low_nappy_count', // Reuse type for now
-          message: 'No weight recorded in over a week — consider weighing baby',
-          severity: 'info',
-        };
-      }
-    }
-    return null;
-  }
-
-  // Check last 3 measurements for declining or flat trend
-  const recentWeights = weightLogs.slice(-3);
-  if (recentWeights.length >= 2) {
-    const weights = recentWeights.map(log => log.weight_grams!);
-    const isDecreasing = weights.every((w, i) => i === 0 || w <= weights[i - 1]);
-
-    if (isDecreasing) {
-      return {
-        type: 'low_nappy_count', // Reuse type
-        message: 'Weight not increasing — monitor feeding & nappies',
-        severity: 'warning',
-      };
-    }
   }
 
   return null;
