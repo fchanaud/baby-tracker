@@ -1,4 +1,3 @@
-// Generated Supabase types (simplified for this project)
 export type Json =
   | string
   | number
@@ -21,7 +20,7 @@ export interface Database {
           duration_minutes: number | null
           amount_ml: number | null
           nappy_type: string | null
-          weight_grams: number | null
+          poo_consistency: string | null
           note: string | null
           needs_review: boolean
         }
@@ -35,7 +34,7 @@ export interface Database {
           duration_minutes?: number | null
           amount_ml?: number | null
           nappy_type?: string | null
-          weight_grams?: number | null
+          poo_consistency?: string | null
           note?: string | null
           needs_review?: boolean
         }
@@ -49,11 +48,20 @@ export interface Database {
           duration_minutes?: number | null
           amount_ml?: number | null
           nappy_type?: string | null
-          weight_grams?: number | null
+          poo_consistency?: string | null
           note?: string | null
           needs_review?: boolean
         }
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
     }
   }
 }
