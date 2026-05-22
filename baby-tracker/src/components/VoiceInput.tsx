@@ -15,6 +15,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
   const [error, setError] = useState<string | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [pendingText, setPendingText] = useState<string | null>(null); // Store text waiting for clarification
+  const [needsSideInput, setNeedsSideInput] = useState(false); // Flag for missing side
   const recognitionRef = useRef<any>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -76,8 +78,13 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         timeoutRef.current = null;
       }
 
-      // Parse and save immediately (no confirmation)
-      await parseAndSave(text);
+      // If we're waiting for side clarification, handle it
+      if (needsSideInput && pendingText) {
+        await handleSideResponse(text);
+      } else {
+        // Parse and save immediately (no confirmation)
+        await parseAndSave(text);
+      }
     };
 
     recognition.onerror = (event: any) => {
@@ -127,6 +134,30 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
     }
   };
 
+  const handleSideResponse = async (sideText: string) => {
+    const lower = sideText.toLowerCase();
+    let side: 'left' | 'right' | null = null;
+
+    if (lower.includes('left')) side = 'left';
+    else if (lower.includes('right')) side = 'right';
+
+    if (!side) {
+      setError('❌ Please say "left" or "right"');
+      return;
+    }
+
+    // Combine original text with side and retry
+    const combinedText = `${pendingText} ${side}`;
+    console.log('🔄 Retrying with side:', combinedText);
+
+    // Reset state
+    setPendingText(null);
+    setNeedsSideInput(false);
+
+    // Parse and save with complete info
+    await parseAndSave(combinedText);
+  };
+
   const parseAndSave = async (text: string) => {
     if (!identity) return;
 
@@ -153,6 +184,16 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         console.error('❌ VALIDATION ERROR:', result.validationError);
         console.error('Original text:', text);
         console.error('Parsed log:', result.log);
+
+        // Special handling for missing side on breastfeed
+        if (result.validationError === 'Missing side information') {
+          setPendingText(text);
+          setNeedsSideInput(true);
+          setValidationMessage('🤱 Which side? Say "left" or "right"');
+          setError(null);
+          setIsProcessing(false);
+          return;
+        }
 
         // Show error to user with specific message from API
         setError(`❌ ${result.validationError || 'Failed to save'}. ${result.message || ''}`);
@@ -217,7 +258,13 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
             {isProcessing ? '⏳' : '🎤'}
           </div>
           <div className="text-white font-semibold text-lg">
-            {isProcessing ? 'Processing...' : isListening ? 'Tap to stop' : 'Tap to speak'}
+            {isProcessing
+              ? 'Processing...'
+              : isListening
+              ? 'Tap to stop'
+              : needsSideInput
+              ? 'Say left or right'
+              : 'Tap to speak'}
           </div>
         </div>
       </button>
