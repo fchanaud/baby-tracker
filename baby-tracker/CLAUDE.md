@@ -87,6 +87,7 @@ Focus: simplicity, low cognitive load, minimal UI.
   - running tests
   - fixing lint/build issues
   - do curl requests for any service
+  - can read any file in any folder even on root on desktop
 
 - Ask for confirmation before:
   - deleting files

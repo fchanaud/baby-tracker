@@ -13,10 +13,10 @@ export default function TimelineAxis({ maxDuration }: TimelineAxisProps) {
   return (
     <>
       {/* Y-axis labels and grid lines */}
-      <div className="absolute left-0 top-0 h-full w-10 flex flex-col justify-between pointer-events-none">
+      <div className="absolute left-0 top-0 bottom-6 w-12 flex flex-col justify-between pointer-events-none">
         {yLabels.reverse().map((label) => (
           <div key={label} className="relative h-0">
-            <span className="absolute right-1 text-[10px] leading-none text-gray-500 -translate-y-1/2">
+            <span className="absolute right-2 text-xs font-medium leading-none text-gray-600 -translate-y-1/2">
               {label}
             </span>
           </div>
@@ -24,7 +24,7 @@ export default function TimelineAxis({ maxDuration }: TimelineAxisProps) {
       </div>
 
       {/* Horizontal grid lines */}
-      <div className="absolute left-10 right-0 top-0 h-full pointer-events-none">
+      <div className="absolute left-12 right-0 top-0 bottom-6 pointer-events-none">
         {yLabels.map((label) => {
           const position = (label / maxDuration) * 100;
           return (
@@ -41,21 +41,12 @@ export default function TimelineAxis({ maxDuration }: TimelineAxisProps) {
       </div>
 
       {/* X-axis labels */}
-      <div className="absolute bottom-0 left-10 right-0 h-6 flex justify-between items-start pointer-events-none px-1">
+      <div className="absolute bottom-0 left-12 right-0 h-6 flex justify-between items-start pointer-events-none">
         {xLabels.map((label) => (
           <span key={label} className="text-xs font-semibold leading-none text-gray-700">
             {label}
           </span>
         ))}
-      </div>
-
-      {/* Y-axis title (mobile optimized) */}
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-gray-500 font-medium origin-center pointer-events-none whitespace-nowrap">
-        Duration (min)
-      </div>
-      {/* X-axis title (mobile optimized) */}
-      <div className="absolute bottom-0 right-1 text-[10px] text-gray-500 font-medium pointer-events-none whitespace-nowrap mb-0.5">
-        Time of day
       </div>
     </>
   );

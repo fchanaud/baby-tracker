@@ -64,12 +64,12 @@ export default function DurationBarTimeline({
       {/* Chart Container */}
       <div className="relative bg-white rounded-lg p-3 shadow-md">
         {/* Chart area with axes */}
-        <div className="relative" style={{ height: '300px', paddingLeft: '40px', paddingBottom: '24px' }}>
+        <div className="relative" style={{ height: '300px', paddingLeft: '48px', paddingBottom: '24px' }}>
           {/* Axes and grid */}
           <TimelineAxis maxDuration={maxDuration} />
 
           {/* Bars */}
-          <div className="absolute left-10 right-0 bottom-6 top-0">
+          <div className="absolute left-12 right-0 bottom-6 top-0">
             {filteredLogs.length === 0 ? (
               <div className="flex items-center justify-center h-full text-gray-400 text-sm">
                 No activities for this day
