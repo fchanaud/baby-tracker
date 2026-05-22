@@ -7,8 +7,7 @@ import IdentityPicker from './IdentityPicker';
 import VoiceInput from './VoiceInput';
 import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
-import VisualTimeline from './VisualTimeline';
-import RecentLogs from './RecentLogs';
+import TimelineLanes from './TimelineLanes';
 
 export default function Dashboard() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
@@ -59,8 +58,8 @@ export default function Dashboard() {
         {/* Metrics */}
         <MetricCards logs={logs} />
 
-        {/* Visual Timeline */}
-        <VisualTimeline logs={logs} />
+        {/* Timeline with Lanes */}
+        <TimelineLanes logs={logs} />
 
         {/* User Info */}
         <div className="text-center text-sm text-gray-500 pb-4">

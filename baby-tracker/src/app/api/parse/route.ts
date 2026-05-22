@@ -18,6 +18,19 @@ export async function POST(request: NextRequest) {
     // Parse natural language to structured log
     const { parsedLog, usedFallback, parseError } = await parseWithClaude(text);
 
+    // Reject invalid/unrelated input
+    if (parsedLog.log_type === 'invalid') {
+      console.error('❌ VALIDATION FAILED: Input not related to baby care');
+      console.error('Original text:', text);
+
+      return NextResponse.json({
+        success: false,
+        validationError: 'Not related to baby activities',
+        message: 'Please say something about feeding, sleep, nappy, or weight',
+        log: parsedLog
+      }, { status: 400 });
+    }
+
     // Validate breastfeed logs must have a side
     if (parsedLog.log_type === 'breastfeed' && !parsedLog.side) {
       console.error('❌ VALIDATION FAILED: Breastfeed log without side');
@@ -27,7 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         validationError: 'Missing side information',
-        message: 'Please specify which side (left or right tit)',
+        message: 'Please specify which side (left or right)',
         log: parsedLog
       }, { status: 400 });
     }
@@ -98,25 +111,32 @@ async function parseWithClaude(text: string): Promise<ParseResult> {
   // Compressed prompt to minimize tokens while maintaining accuracy
   const systemPrompt = `Parse baby activity to JSON. Output ONLY JSON, no markdown.
 
+FIRST: Check if input is baby-related (feed, sleep, nappy, weight). If NOT related to baby care, output: {"log_type":"invalid","needs_review":false}
+
 Fields: log_type, side?, duration_minutes?, amount_ml?, nappy_type?, weight_grams?, note?, logged_at?, needs_review
 
-Types: "breastfeed"|"bottle"|"sleep"|"nappy"|"weight"|"note"
-Side: "left"|"right"|"both" (breastfeed only, REQUIRED)
+Types: "breastfeed"|"bottle"|"sleep"|"nappy"|"weight"|"note"|"invalid"
+Side: "left"|"right"|"both" (breastfeed only, REQUIRED - if missing, set needs_review:true)
 Nappy: "wet"|"dirty"|"mixed"
 
-CRITICAL: "for X min" = duration, "X min ago" = logged_at timestamp
+CRITICAL:
+- "for X min" = duration, "X min ago" = logged_at timestamp
+- No time specified = use current time (logged_at omitted)
+- Random/unrelated text = {"log_type":"invalid"}
 
 Current: ${currentTime}
 
 Examples:
-"breastfed 20min left" → {"log_type":"breastfeed","side":"left","duration_minutes":20,"needs_review":false}
-"bottle 90ml" → {"log_type":"bottle","amount_ml":90,"needs_review":false}
-"slept 2 hours" → {"log_type":"sleep","duration_minutes":120,"needs_review":false}
-"slept 20min 10min ago" → {"log_type":"sleep","duration_minutes":20,"logged_at":"${calculatePastTime(10)}","needs_review":false}
-"wet nappy" → {"log_type":"nappy","nappy_type":"wet","needs_review":false}
-"weighs 3.8kg" → {"log_type":"weight","weight_grams":3800,"needs_review":false}
+"breastfed 20min left" → {"log_type":"breastfeed","side":"left","duration_minutes":20}
+"bottle 90ml" → {"log_type":"bottle","amount_ml":90}
+"slept 2 hours" → {"log_type":"sleep","duration_minutes":120}
+"slept 20min 10min ago" → {"log_type":"sleep","duration_minutes":20,"logged_at":"${calculatePastTime(10)}"}
+"wet nappy" → {"log_type":"nappy","nappy_type":"wet"}
+"weighs 3.8kg" → {"log_type":"weight","weight_grams":3800}
+"hello world" → {"log_type":"invalid"}
+"what's the weather" → {"log_type":"invalid"}
 
-Set needs_review:true if uncertain.`;
+Set needs_review:true if uncertain or missing required fields.`;
 
   try {
     const anthropic = getAnthropicClient();

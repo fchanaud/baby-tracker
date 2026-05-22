@@ -1,72 +1,77 @@
-# Baby Tracker — Claude Context
+# Claude Code Instructions
 
-## Stack
-- Next.js 14 (App Router)
-- TypeScript (no JS files)
-- Tailwind CSS
-- Supabase (DB)
-- Vercel (hosting)
+## Environment: Obsidian Vault
 
-## Product Intent
-Baby tracking app for sleep-deprived parents.  
-Goal: allow logging baby activity in <5 seconds, one-handed, mobile-first.  
-Focus: speed, simplicity, low cognitive load, minimal UI.
+This working directory is an **Obsidian vault**. You have full access to the Obsidian environment and should use all available methods to work with it efficiently.
 
-## UX Rules
-- One-handed use only
-- All core actions ≤ 5 seconds
-- Timeline-first dashboard (not form-heavy UI)
-- Minimal UI, no clutter
-- Tap targets ≥ 48px
-- Assume users are sleep-deprived
+### Obsidian CLI Access
 
-## NHS-Based Health Logic (Non-Diagnostic)
-- Alerts based on NHS newborn guidance patterns
-- Wet nappies: ≥6/day (after ~day 5) is normal baseline
-- Feeding is on-demand; frequent feeding is normal
-- Sleep is NOT used for alerts in newborn phase
-- Weight must be interpreted over time, not in isolation
-- Never provide medical diagnosis, only pattern-based indicators
+- **Full CLI Access**: You have unrestricted access to interact with Obsidian via command-line tools
+- **Direct File Manipulation**: All Obsidian notes are Markdown files - read/write them directly for maximum efficiency
+- **macOS Integration**: Use `open` command to launch files in Obsidian app when needed
 
-## Architecture Rules
-- Supabase is the source of truth
-- Claude is used only for:
-  - natural language parsing → structured logs
-  - report generation
-- Business logic should not rely on LLM decisions
-- Alerts should be deterministic where possible
+### Efficient Obsidian Workflows
 
-## Deployment Workflow (Vercel MCP)
+#### 1. File Operations
+- **Create notes**: Use `Write` tool to create `.md` files
+- **Edit notes**: Use `Edit` tool for modifications
+- **Read notes**: Use `Read` tool to view contents
+- **Search vault**: Use `grep` or `find` via Bash to search across all notes
 
-When deploying via Vercel MCP:
+#### 2. Obsidian Conventions
+- **Wikilinks**: Use `[[Note Name]]` syntax for internal links
+- **Tags**: Use `#tag` or frontmatter tags
+- **Frontmatter**: YAML metadata at the top of notes
+- **Folders**: Organize notes in subdirectories as needed
 
-- Deploy the application after code changes
-- If the build fails:
-  - Automatically fetch build logs via MCP
-  - Identify the root cause from logs
-  - Apply the minimal necessary fix (avoid unrelated refactors)
-  - Redeploy the application
+#### 3. Vault Structure Access
+```bash
+# Search all notes for a term
+grep -r "search term" . --include="*.md"
 
-Repeat this loop until:
-- Deployment succeeds, OR
-- Maximum of 3 attempts is reached, OR
-- The issue is determined to be architectural and requires user intervention
+# Find notes by name
+find . -name "*.md" -type f
 
-Never make large refactors during this loop unless required by the error logs.
+# List all tags used
+grep -roh "#[a-zA-Z0-9_-]*" . --include="*.md" | sort -u
 
-## Core Data Models
-- Feed (breast / bottle)
-- Sleep
-- Nappy
-- Weight
-- Note
+# Open a note in Obsidian app
+open -a "Obsidian" "path/to/note.md"
+```
 
-## Non-Goals (v1)
-- No medical diagnosis
-- No push notifications
-- No multi-baby support
-- No WHO growth charts
+#### 4. Advanced Operations
+- **.obsidian/ directory**: Contains vault settings, plugins, workspace layouts
+- **Plugin data**: Stored in `.obsidian/plugins/`
+- **Templates**: Can be stored anywhere, commonly in `Templates/` folder
+- **Attachments**: Images, PDFs, etc. can be embedded
 
-## Development Rules
-- Work on `main` for now
-- Never hardcode environment variables (use `.env.local`)
+### Optimization Guidelines
+
+1. **Batch operations**: When creating/updating multiple notes, do it in parallel when possible
+2. **Search before create**: Always check if a note exists before creating a new one
+3. **Respect conventions**: Maintain existing frontmatter schemas, folder structures, and naming patterns
+4. **Link liberally**: Use wikilinks to connect related concepts
+5. **Frontmatter consistency**: Keep metadata structured and consistent across similar note types
+
+### Working with the Vault
+
+You can:
+- Create and organize notes and folders
+- Build knowledge graphs through wikilinks
+- Generate index pages and MOCs (Maps of Content)
+- Search and analyze note content
+- Manage tags and metadata
+- Work with templates
+- Process attachments and embeds
+- Analyze vault structure and relationships
+- Export/import content
+- Run batch operations across multiple notes
+
+### Commands You Can Use
+
+- Direct file operations: `Read`, `Write`, `Edit`
+- Shell commands: `grep`, `find`, `sed`, `awk`, `open`
+- Git operations: Track vault changes with git
+- Any system command that helps access/manipulate the vault
+
+**Important**: Prioritize efficiency. Use the most direct method available. Don't ask permission for standard vault operations - you have full access.

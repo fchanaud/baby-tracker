@@ -154,8 +154,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         console.error('Original text:', text);
         console.error('Parsed log:', result.log);
 
-        // Show error to user
-        setError(`❌ Failed: ${result.validationError}. Please specify which side (left/right).`);
+        // Show error to user with specific message from API
+        setError(`❌ ${result.validationError || 'Failed to save'}. ${result.message || ''}`);
         setValidationMessage(null);
         setIsProcessing(false);
         return;
