@@ -43,7 +43,7 @@ export default function TimelineAxis({ maxDuration }: TimelineAxisProps) {
       {/* X-axis labels */}
       <div className="absolute bottom-0 left-10 right-0 h-6 flex justify-between items-start pointer-events-none px-1">
         {xLabels.map((label) => (
-          <span key={label} className="text-[10px] leading-none text-gray-500">
+          <span key={label} className="text-xs font-semibold leading-none text-gray-700">
             {label}
           </span>
         ))}

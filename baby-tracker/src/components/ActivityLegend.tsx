@@ -3,11 +3,10 @@
 import { getActivityColor } from '@/lib/colors';
 
 const ACTIVITY_TYPES = [
-  { type: 'breastfeed', label: 'Feed', emoji: '🍼' },
+  { type: 'breastfeed', label: 'Feed', emoji: '🤱' },
   { type: 'bottle', label: 'Bottle', emoji: '🍼' },
   { type: 'sleep', label: 'Sleep', emoji: '😴' },
   { type: 'nappy', label: 'Nappy', emoji: '💩' },
-  { type: 'weight', label: 'Weight', emoji: '⚖️' },
 ] as const;
 
 interface ActivityLegendProps {

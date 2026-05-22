@@ -28,7 +28,6 @@ export default function DurationBarTimeline({
     'bottle',
     'sleep',
     'nappy',
-    'weight',
   ]);
 
   // Filter logs by active filters

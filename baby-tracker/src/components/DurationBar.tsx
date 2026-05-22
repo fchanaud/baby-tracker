@@ -13,51 +13,41 @@ interface DurationBarProps {
 
 export default function DurationBar({ log, maxDuration, onBarClick, onLongPress }: DurationBarProps) {
   const { accent } = getActivityColor(log.log_type);
-  const height = getBarHeight(log.duration_minutes ?? null, maxDuration);
   const position = getBarPosition(log.logged_at);
 
-  // Long press detection
-  let pressTimer: NodeJS.Timeout | null = null;
+  // Nappies: show as markers instead of bars
+  const isNappy = log.log_type === 'nappy';
 
-  const handleTouchStart = () => {
-    pressTimer = setTimeout(() => {
-      if (onLongPress) {
-        // Haptic feedback on supported devices
-        if ('vibrate' in navigator) {
-          navigator.vibrate(50);
-        }
-        onLongPress(log);
-      }
-    }, 500); // 500ms for long press
-  };
+  if (isNappy) {
+    return (
+      <div
+        className="absolute bottom-0 pointer-events-none"
+        style={{
+          left: `${position}%`,
+          transform: 'translateX(-50%)',
+        }}
+      >
+        <div
+          className="w-3 h-3 rounded-full shadow-md"
+          style={{ backgroundColor: accent }}
+          title={`${log.nappy_type} nappy at ${formatTime(log.logged_at)}`}
+        />
+      </div>
+    );
+  }
 
-  const handleTouchEnd = () => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      pressTimer = null;
-    }
-  };
-
-  const handleClick = () => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-    }
-    onBarClick(log);
-  };
+  // Duration-based activities: show as bars (non-clickable)
+  const height = getBarHeight(log.duration_minutes ?? null, maxDuration);
 
   return (
     <div
-      className="absolute bottom-0 cursor-pointer transition-all hover:opacity-80 active:scale-95"
+      className="absolute bottom-0 pointer-events-none"
       style={{
         left: `${position}%`,
         height: `${height}%`,
         width: '10px',
         transform: 'translateX(-5px)', // Center bar on position
       }}
-      onClick={handleClick}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
       title={`${log.log_type} - ${formatDuration(log.duration_minutes ?? null)} at ${formatTime(log.logged_at)}`}
     >
       <div
