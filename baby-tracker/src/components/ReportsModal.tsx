@@ -130,9 +130,34 @@ export default function ReportsModal({ isOpen, onClose }: ReportsModalProps) {
 
           {/* Report Result */}
           {report && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-              <h3 className="font-semibold text-green-900 mb-2">Report:</h3>
-              <p className="text-green-800 whitespace-pre-wrap">{report}</p>
+            <div className="bg-white border-2 border-green-500 rounded-xl p-6">
+              <h3 className="font-bold text-lg text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                📈 Report
+              </h3>
+              <div className="prose prose-sm max-w-none text-gray-700 leading-relaxed space-y-3">
+                {report.split('\n').map((line, i) => {
+                  // Remove markdown formatting
+                  const cleanLine = line.replace(/\*\*/g, '').trim();
+
+                  if (!cleanLine) return null;
+
+                  // Detect bullet points
+                  if (cleanLine.startsWith('•') || cleanLine.startsWith('-')) {
+                    return (
+                      <li key={i} className="ml-4 text-base">
+                        {cleanLine.replace(/^[•\-]\s*/, '')}
+                      </li>
+                    );
+                  }
+
+                  // Regular paragraph
+                  return (
+                    <p key={i} className="text-base">
+                      {cleanLine}
+                    </p>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

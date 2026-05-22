@@ -48,10 +48,17 @@ async function generateReport(query: string, logs: any[]): Promise<string> {
   const currentTime = new Date().toISOString();
 
   // Compress prompt and use compact JSON to reduce tokens
-  const systemPrompt = `Answer baby log questions. Be concise (<150 words), parent-friendly, no medical diagnoses.
+  const systemPrompt = `Answer baby log questions clearly and concisely.
 
-Date: ${currentTime}
-Data: ${JSON.stringify(logs)}`;
+Rules:
+- Use plain text, NO markdown formatting (no **, no ##, no ___)
+- Use bullet points with • for lists
+- Keep under 150 words
+- Be parent-friendly, no medical advice
+- Answer with specific numbers when asked
+
+Current date: ${currentTime}
+Logs (last 30 days): ${JSON.stringify(logs)}`;
 
   try {
     const anthropic = getAnthropicClient();

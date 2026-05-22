@@ -76,7 +76,13 @@ export default function Dashboard() {
       <div className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold">Baby Tracker</h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <a
+              href="/profile"
+              className="text-sm font-medium text-purple-600 hover:text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors"
+            >
+              👶 Profile
+            </a>
             <button
               onClick={() => setShowReportsModal(true)}
               className="text-sm font-medium text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
@@ -85,9 +91,9 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => setIdentity(null)}
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className="text-sm text-gray-600 hover:text-gray-900 px-2"
             >
-              Switch User
+              Switch
             </button>
           </div>
         </div>
