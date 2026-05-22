@@ -13,7 +13,7 @@ interface DurationBarProps {
 
 export default function DurationBar({ log, maxDuration, onBarClick, onLongPress }: DurationBarProps) {
   const { accent } = getActivityColor(log.log_type);
-  const height = getBarHeight(log.duration_minutes, maxDuration);
+  const height = getBarHeight(log.duration_minutes ?? null, maxDuration);
   const position = getBarPosition(log.logged_at);
 
   // Long press detection
