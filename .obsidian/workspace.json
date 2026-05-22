@@ -205,7 +205,7 @@
               },
               "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠂ Summarize root markdown files"
+              "title": "Terminal: ⠐ Summarize root markdown files"
             }
           },
           {
@@ -228,7 +228,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 716.5
+    "width": 708.5
   },
   "left-ribbon": {
     "hiddenItems": {

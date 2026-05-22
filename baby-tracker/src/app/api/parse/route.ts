@@ -31,18 +31,10 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validate breastfeed logs must have a side
+    // If breastfeed without side, flag for review but allow it
     if (parsedLog.log_type === 'breastfeed' && !parsedLog.side) {
-      console.error('❌ VALIDATION FAILED: Breastfeed log without side');
-      console.error('Original text:', text);
-      console.error('Parsed log:', parsedLog);
-
-      return NextResponse.json({
-        success: false,
-        validationError: 'Missing side information',
-        message: 'Please specify which side (left or right)',
-        log: parsedLog
-      }, { status: 400 });
+      parsedLog.needs_review = true;
+      console.warn('⚠️  Breastfeed log without side - flagged for review');
     }
 
     // Validate reasonable ranges for values
@@ -148,10 +140,11 @@ FIRST: Check if input is baby-related (feed, sleep, nappy). If NOT related to ba
 Fields: log_type, side?, duration_minutes?, amount_ml?, nappy_type?, note?, logged_at?, needs_review
 
 Types: "breastfeed"|"bottle"|"sleep"|"nappy"|"note"|"invalid"
-Side: "left"|"right"|"both" (breastfeed only, REQUIRED - if missing, set needs_review:true)
+Side: "left"|"right"|"both" (breastfeed only - if mentioned use it, if not mentioned set needs_review:true)
 Nappy: "wet"|"dirty"|"mixed"
 
 CRITICAL:
+- "fed" without ml/bottle = breastfeed (even if side not specified, set needs_review:true)
 - "for X min" = duration, "X min ago" = logged_at timestamp
 - No time specified = use current time (logged_at omitted)
 - Random/unrelated text = {"log_type":"invalid"}
@@ -162,6 +155,7 @@ Current: ${currentTime}
 
 Examples:
 "breastfed 20min left" → {"log_type":"breastfeed","side":"left","duration_minutes":20}
+"fed for 10 minutes" → {"log_type":"breastfeed","duration_minutes":10,"needs_review":true}
 "bottle 90ml" → {"log_type":"bottle","amount_ml":90}
 "bottle 90ml took 15 minutes" → {"log_type":"bottle","amount_ml":90,"duration_minutes":15}
 "slept 2 hours" → {"log_type":"sleep","duration_minutes":120}

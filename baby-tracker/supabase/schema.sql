@@ -26,9 +26,6 @@ CREATE TABLE logs (
   needs_review BOOLEAN DEFAULT FALSE,
 
   -- Type-specific validation constraints
-  CONSTRAINT valid_breastfeed CHECK (
-    log_type != 'breastfeed' OR (side IS NOT NULL)
-  ),
   CONSTRAINT valid_bottle CHECK (
     log_type != 'bottle' OR (amount_ml IS NOT NULL)
   ),
