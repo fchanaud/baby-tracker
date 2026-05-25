@@ -95,7 +95,9 @@ export default function Insights() {
           {/* Answer */}
           {answer && (
             <div className="mt-4 p-4 bg-gray-900 border border-gray-700 rounded-xl">
-              <p className="text-gray-100 leading-relaxed whitespace-pre-wrap">{answer}</p>
+              <p className="text-gray-100 leading-relaxed whitespace-pre-wrap">
+                {answer.replace(/\*\*/g, '')}
+              </p>
             </div>
           )}
 

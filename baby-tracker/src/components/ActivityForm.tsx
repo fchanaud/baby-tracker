@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Identity } from '@/hooks/useIdentity';
-import { LogType, Side, NappyType, PooConsistency } from '@/lib/types';
+import { LogType, Side, NappyType, PooConsistency, Log } from '@/lib/types';
 import Toast from './Toast';
 
 interface ActivityFormProps {
@@ -10,6 +10,7 @@ interface ActivityFormProps {
   onLogCreated: () => void;
   onSaveError?: (error: string) => void;
   initialActivity?: 'feed' | 'sleep' | 'nappy';
+  todayLogs?: Log[];
 }
 
 type FormStep = 'type' | 'timing' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'stool-type' | 'saving';
@@ -19,7 +20,7 @@ interface ToastState {
   type: 'success' | 'error';
 }
 
-export default function ActivityForm({ identity, onLogCreated, onSaveError, initialActivity }: ActivityFormProps) {
+export default function ActivityForm({ identity, onLogCreated, onSaveError, initialActivity, todayLogs = [] }: ActivityFormProps) {
   // Determine initial step based on initialActivity
   const getInitialStep = (): FormStep => {
     // Always start with timing if activity is pre-selected
@@ -44,6 +45,29 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   const [showTimeInput, setShowTimeInput] = useState(false);
   const [hoursAgo, setHoursAgo] = useState('1');
 
+  // Calculate breastfeed side balance for today
+  const breastfeedBalance = useMemo(() => {
+    const breastfeeds = todayLogs.filter(log => log.log_type === 'breastfeed');
+    const leftCount = breastfeeds.filter(log => log.side === 'left').length;
+    const rightCount = breastfeeds.filter(log => log.side === 'right').length;
+
+    let recommendation = '';
+    if (leftCount > rightCount) {
+      recommendation = 'Try right next';
+    } else if (rightCount > leftCount) {
+      recommendation = 'Try left next';
+    } else if (leftCount === rightCount && leftCount > 0) {
+      recommendation = 'Both sides equal today';
+    }
+
+    return {
+      leftCount,
+      rightCount,
+      recommendation,
+      hasFeeds: breastfeeds.length > 0,
+      total: leftCount + rightCount,
+    };
+  }, [todayLogs]);
 
   const resetForm = () => {
     setStep('type');
@@ -367,6 +391,33 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
         </button>
 
         <h2 className="text-lg font-semibold text-gray-900 text-center">Which side?</h2>
+
+        {/* Side Balance Indicator */}
+        {breastfeedBalance.hasFeeds && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-gray-700">
+                Today: L:{breastfeedBalance.leftCount} | R:{breastfeedBalance.rightCount}
+              </span>
+            </div>
+            {/* Visual progress bar */}
+            <div className="h-2 bg-gray-200 rounded-full overflow-hidden flex">
+              <div
+                className="bg-blue-500"
+                style={{ width: `${(breastfeedBalance.leftCount / breastfeedBalance.total) * 100}%` }}
+              />
+              <div
+                className="bg-pink-500"
+                style={{ width: `${(breastfeedBalance.rightCount / breastfeedBalance.total) * 100}%` }}
+              />
+            </div>
+            {breastfeedBalance.recommendation && (
+              <p className="text-blue-600 font-semibold text-sm mt-2">
+                {breastfeedBalance.recommendation}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Quick Log Button */}
         <button
