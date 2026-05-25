@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLogs } from '@/hooks/useLogs';
-import { getSideAlternationSuggestion } from '@/lib/alerts';
 import IdentityPicker from './IdentityPicker';
 import ActivityForm from './ActivityForm';
 import ActivityButtons from './ActivityButtons';
@@ -29,11 +28,6 @@ export default function Dashboard() {
       return logDate >= dateStart && logDate <= dateEnd;
     });
   }, [logs]);
-
-  // Get side alternation suggestion
-  const sideAlternation = useMemo(() => {
-    return getSideAlternationSuggestion(todayLogs);
-  }, [todayLogs]);
 
   const handleActivitySelect = (activity: 'feed' | 'sleep' | 'nappy' | 'note') => {
     setSelectedActivity(activity);
@@ -101,15 +95,6 @@ export default function Dashboard() {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Activity Buttons */}
         <ActivityButtons onActivitySelect={handleActivitySelect} />
-
-        {/* Side Alternation Prompt */}
-        {sideAlternation && (
-          <div className="bg-purple-900 border border-purple-700 rounded-xl p-4">
-            <p className="text-purple-200 font-semibold text-center">
-              🤱 {sideAlternation}
-            </p>
-          </div>
-        )}
 
         {/* Key Metrics - 2x2 Grid */}
         <MetricCards logs={todayLogs} allLogs={logs} />
