@@ -47,12 +47,12 @@ const LogEntry = memo(function LogEntry({ log }: { log: Log }) {
   if (diffMins < 1) {
     timeAgo = 'just now';
   } else if (diffMins < 60) {
-    timeAgo = `${diffMins}m ago`;
+    timeAgo = `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
   } else if (diffHours < 24) {
-    timeAgo = `${diffHours}h ago`;
+    timeAgo = `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
   } else {
     const days = Math.floor(diffHours / 24);
-    timeAgo = `${days}d ago`;
+    timeAgo = `${days} day${days === 1 ? '' : 's'} ago`;
   }
 
   let emoji = '📝';

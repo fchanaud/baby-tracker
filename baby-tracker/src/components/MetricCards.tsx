@@ -10,6 +10,7 @@ import {
   type AlertState,
 } from '@/lib/nhs-thresholds';
 import { useBabyProfile } from '@/hooks/useBabyProfile';
+import MetricDetailsSheet from './MetricDetailsSheet';
 
 interface MetricCardsProps {
   logs: Log[]; // Logs for selected date (today)
@@ -19,6 +20,7 @@ interface MetricCardsProps {
 export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
   const { profile } = useBabyProfile();
   const [, forceUpdate] = useState(0);
+  const [selectedMetric, setSelectedMetric] = useState<'feeds' | 'sleep' | 'nappies' | null>(null);
 
   // Force re-render every minute for live time awake counter
   useEffect(() => {
@@ -35,24 +37,26 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
   const sleepStatus = evaluateSleepMetric(logs, allLogs, profile?.dateOfBirth);
   const awakeStatus = evaluateTimeAwakeMetric(allLogs);
 
-  // Calculate display values
-  const feedsToday = logs.filter(log =>
+  // Calculate display values and filter logs by type
+  const feedLogs = logs.filter(log =>
     log.log_type === 'breastfeed' || log.log_type === 'bottle'
-  ).length;
+  );
+  const feedsToday = feedLogs.length;
 
-  const totalSleepMinutes = logs
-    .filter(log => log.log_type === 'sleep')
+  const sleepLogs = logs.filter(log => log.log_type === 'sleep');
+  const totalSleepMinutes = sleepLogs
     .reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
   const totalSleepHours = Math.floor(totalSleepMinutes / 60);
   const totalSleepMins = totalSleepMinutes % 60;
 
-  const wetNappiesToday = logs.filter(
+  const nappyLogs = logs.filter(
     log => log.log_type === 'nappy' &&
     (log.nappy_type === 'wet' || log.nappy_type === 'both')
-  ).length;
+  );
+  const wetNappiesToday = nappyLogs.length;
 
   // Time awake calculation
-  const sleepLogs = allLogs
+  const allSleepLogs = allLogs
     .filter(log => log.log_type === 'sleep')
     .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime());
 
@@ -60,8 +64,8 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
   let awakeValue = 'N/A';
   let isCurrentlySleeping = false;
 
-  if (sleepLogs.length > 0) {
-    const lastSleep = sleepLogs[0];
+  if (allSleepLogs.length > 0) {
+    const lastSleep = allSleepLogs[0];
     const sleepStartTime = new Date(lastSleep.logged_at).getTime();
     const sleepEndTime = sleepStartTime + (lastSleep.duration_minutes || 0) * 60 * 1000;
     const now = Date.now();
@@ -79,36 +83,67 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
     }
   }
 
+  // Get sheet title and logs based on selected metric
+  const getSheetData = () => {
+    switch (selectedMetric) {
+      case 'feeds':
+        return { title: 'Feeds Today', logs: feedLogs };
+      case 'sleep':
+        return { title: 'Sleep Today', logs: sleepLogs };
+      case 'nappies':
+        return { title: 'Nappies Today', logs: nappyLogs };
+      default:
+        return { title: '', logs: [] };
+    }
+  };
+
+  const sheetData = getSheetData();
+
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <MetricCard
-        title="Feeds Today"
-        value={`${feedsToday} · ${feedsStatus.target || ''}`}
-        state={feedsStatus.state}
-        message={feedsStatus.message}
-      />
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <MetricCard
+          title="Feeds Today"
+          value={`${feedsToday} · ${feedsStatus.target || ''}`}
+          state={feedsStatus.state}
+          message={feedsStatus.message}
+          onClick={() => setSelectedMetric('feeds')}
+        />
 
-      <MetricCard
-        title="Total Sleep"
-        value={`${totalSleepMinutes > 0 ? `${totalSleepHours}h ${totalSleepMins}m` : '0h'} · ${sleepStatus.target || ''}`}
-        state={sleepStatus.state}
-        message={sleepStatus.message}
-      />
+        <MetricCard
+          title="Total Sleep"
+          value={`${totalSleepMinutes > 0 ? `${totalSleepHours}h ${totalSleepMins}m` : '0h'} · ${sleepStatus.target || ''}`}
+          state={sleepStatus.state}
+          message={sleepStatus.message}
+          onClick={() => setSelectedMetric('sleep')}
+        />
 
-      <MetricCard
-        title="Nappies Today"
-        value={`${wetNappiesToday} · ${nappiesStatus.target || ''}`}
-        state={nappiesStatus.state}
-        message={nappiesStatus.message}
-      />
+        <MetricCard
+          title="Nappies Today"
+          value={`${wetNappiesToday} · ${nappiesStatus.target || ''}`}
+          state={nappiesStatus.state}
+          message={nappiesStatus.message}
+          onClick={() => setSelectedMetric('nappies')}
+        />
 
-      <MetricCard
-        title={awakeTitle}
-        value={`${awakeValue}${isCurrentlySleeping ? '' : ` · ${awakeStatus.target || ''}`}`}
-        state={awakeStatus.state}
-        message={awakeStatus.message}
-      />
-    </div>
+        <MetricCard
+          title={awakeTitle}
+          value={`${awakeValue}${isCurrentlySleeping ? '' : ` · ${awakeStatus.target || ''}`}`}
+          state={awakeStatus.state}
+          message={awakeStatus.message}
+          onClick={undefined}
+        />
+      </div>
+
+      {/* Metric Details Bottom Sheet */}
+      {selectedMetric && (
+        <MetricDetailsSheet
+          title={sheetData.title}
+          logs={sheetData.logs}
+          onClose={() => setSelectedMetric(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -117,9 +152,10 @@ interface MetricCardProps {
   value: string;
   state: AlertState;
   message?: string;
+  onClick?: () => void;
 }
 
-function MetricCard({ title, value, state, message }: MetricCardProps) {
+function MetricCard({ title, value, state, message, onClick }: MetricCardProps) {
   // Color based on state
   const colors = {
     green: 'bg-green-900 border-green-700',
@@ -127,8 +163,16 @@ function MetricCard({ title, value, state, message }: MetricCardProps) {
     red: 'bg-red-900 border-red-700',
   };
 
+  const baseClasses = `${colors[state]} border rounded-xl p-4`;
+  const interactiveClasses = onClick
+    ? 'cursor-pointer active:scale-95 transition-transform'
+    : '';
+
   return (
-    <div className={`${colors[state]} border rounded-xl p-4`}>
+    <div
+      className={`${baseClasses} ${interactiveClasses}`}
+      onClick={onClick}
+    >
       <p className="text-sm text-gray-400 font-medium mb-1">{title}</p>
       <p className="text-lg font-bold text-gray-100 leading-tight">
         <span>{value.split(' · ')[0]}</span>
