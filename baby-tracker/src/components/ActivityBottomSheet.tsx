@@ -23,8 +23,34 @@ export default function ActivityBottomSheet({ log, onClose }: ActivityBottomShee
   if (!log) return null;
 
   const loggedAt = new Date(log.logged_at);
+  const createdAt = new Date(log.created_at);
   const timeString = loggedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   const dateString = loggedAt.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+
+  // Calculate if it was logged in real-time or backdated
+  const timeDiffMinutes = Math.abs((createdAt.getTime() - loggedAt.getTime()) / (1000 * 60));
+  const wasBackdated = timeDiffMinutes > 5; // More than 5 minutes difference = backdated
+
+  const getLoggingTimeInfo = () => {
+    if (wasBackdated) {
+      const hoursDiff = Math.round(timeDiffMinutes / 60 * 10) / 10; // Round to 1 decimal
+      return {
+        label: 'Logged later',
+        detail: `${hoursDiff}h after it happened`,
+        icon: '⏮️',
+        color: 'text-orange-400'
+      };
+    } else {
+      return {
+        label: 'Logged in real-time',
+        detail: 'As it happened',
+        icon: '⏰',
+        color: 'text-green-400'
+      };
+    }
+  };
+
+  const loggingInfo = getLoggingTimeInfo();
 
   const getActivityEmoji = () => {
     switch (log.log_type) {
@@ -126,6 +152,18 @@ export default function ActivityBottomSheet({ log, onClose }: ActivityBottomShee
                 )}
               </>
             )}
+
+            {/* Logging timing */}
+            <div className="bg-gray-700 rounded-xl p-4">
+              <p className="text-sm text-gray-400 mb-1">When logged</p>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{loggingInfo.icon}</span>
+                <div>
+                  <p className={`text-lg font-medium ${loggingInfo.color}`}>{loggingInfo.label}</p>
+                  <p className="text-sm text-gray-400">{loggingInfo.detail}</p>
+                </div>
+              </div>
+            </div>
 
             {/* Logged by */}
             <div className="bg-gray-700 rounded-xl p-4">
