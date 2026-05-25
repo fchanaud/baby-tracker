@@ -17,6 +17,7 @@ import ActivityButtons from './ActivityButtons';
 import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
 import RecentLogs from './RecentLogs';
+import Navbar from './Navbar';
 
 export default function Dashboard() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
@@ -104,18 +105,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 pb-20">
-      {/* Navbar */}
-      <div className="bg-gray-800 border-b border-gray-700 px-4 py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold">👶 Baby Tracker</h1>
-          <button
-            onClick={() => setIdentity(null)}
-            className="text-sm text-gray-400 hover:text-gray-200 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors min-h-[48px]"
-          >
-            Switch ({identity})
-          </button>
-        </div>
-      </div>
+      <Navbar identity={identity} onSwitchIdentity={() => setIdentity(null)} />
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">

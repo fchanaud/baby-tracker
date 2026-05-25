@@ -11,7 +11,7 @@ interface ActivityFormProps {
   initialActivity?: 'feed' | 'sleep' | 'nappy';
 }
 
-type FormStep = 'type' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'saving';
+type FormStep = 'type' | 'timing' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'saving';
 
 interface ToastState {
   message: string;
@@ -46,6 +46,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
   const [duration, setDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
+  const [customTime, setCustomTime] = useState<string | null>(null);
 
 
   const resetForm = () => {
@@ -56,6 +57,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
     setNappyType(null);
     setDuration(null);
     setError(null);
+    setCustomTime(null);
   };
 
   const saveLog = async (logData: any) => {
@@ -69,7 +71,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
         body: JSON.stringify({
           ...logData,
           logged_by: identity,
-          logged_at: new Date().toISOString(),
+          logged_at: customTime || new Date().toISOString(),
           needs_review: false,
         }),
       });
@@ -134,7 +136,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
           <button
             onClick={() => {
               setLogType('breastfeed');
-              setStep('feed-type');
+              setStep('timing');
             }}
             className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -146,7 +148,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
           <button
             onClick={() => {
               setLogType('sleep');
-              setStep('sleep-duration');
+              setStep('timing');
             }}
             className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -158,7 +160,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
           <button
             onClick={() => {
               setLogType('nappy');
-              setStep('nappy-type');
+              setStep('timing');
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -170,12 +172,82 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
     );
   }
 
+  // Step 1.5: Choose timing (now or earlier)
+  if (step === 'timing') {
+    const handleNow = () => {
+      setCustomTime(null);
+      // Route to next step based on activity type
+      if (logType === 'breastfeed' || logType === 'bottle') {
+        setStep('feed-type');
+      } else if (logType === 'sleep') {
+        setStep('sleep-duration');
+      } else if (logType === 'nappy') {
+        setStep('nappy-type');
+      }
+    };
+
+    const handleEarlier = () => {
+      const hours = prompt('How many hours ago? (e.g., 1.5 for 1 hour 30 min)');
+      if (hours && !isNaN(Number(hours))) {
+        const hoursAgo = Number(hours);
+        const pastTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+        setCustomTime(pastTime.toISOString());
+
+        // Route to next step
+        if (logType === 'breastfeed' || logType === 'bottle') {
+          setStep('feed-type');
+        } else if (logType === 'sleep') {
+          setStep('sleep-duration');
+        } else if (logType === 'nappy') {
+          setStep('nappy-type');
+        }
+      }
+    };
+
+    return (
+      <div className="space-y-3">
+        <button
+          onClick={resetForm}
+          className="text-gray-600 hover:text-gray-900 flex items-center gap-1"
+        >
+          ← Back
+        </button>
+
+        <h2 className="text-lg font-semibold text-gray-900 text-center">When did it happen?</h2>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={handleNow}
+            className="bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
+          >
+            <span className="text-5xl">⏰</span>
+            <span className="text-lg font-semibold">Just Now</span>
+          </button>
+
+          <button
+            onClick={handleEarlier}
+            className="bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
+          >
+            <span className="text-5xl">⏮️</span>
+            <span className="text-lg font-semibold">Earlier</span>
+          </button>
+        </div>
+
+        {customTime && (
+          <p className="text-sm text-gray-600 text-center">
+            Logging at: {new Date(customTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   // Step 2a: Feed type (breast or bottle)
   if (step === 'feed-type') {
     return (
       <div className="space-y-3">
         <button
-          onClick={resetForm}
+          onClick={() => setStep('timing')}
           className="text-gray-600 hover:text-gray-900 flex items-center gap-1"
         >
           ← Back
@@ -376,7 +448,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
     return (
       <div className="space-y-3">
         <button
-          onClick={resetForm}
+          onClick={() => setStep('timing')}
           className="text-gray-600 hover:text-gray-900 flex items-center gap-1"
         >
           ← Back
@@ -422,7 +494,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
     return (
       <div className="space-y-3">
         <button
-          onClick={resetForm}
+          onClick={() => setStep('timing')}
           className="text-gray-600 hover:text-gray-900 flex items-center gap-1"
         >
           ← Back
