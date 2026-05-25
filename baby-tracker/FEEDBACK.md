@@ -1,0 +1,1 @@
+Must be in a more human friendly format![[Screenshot 2026-05-25 at 15.47.10.png]] - remove especially the **
