@@ -51,6 +51,26 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
     return durations.length > 0 ? Math.max(...durations, 60) : 120;
   }, [visibleLogs]);
 
+  // Check if there are activities in next/previous windows
+  const { hasPrevious, hasNext } = useMemo(() => {
+    const prevWindowStart = startTime - 4 * 60 * 60 * 1000;
+    const prevWindowEnd = startTime;
+    const nextWindowStart = endTime;
+    const nextWindowEnd = endTime + 4 * 60 * 60 * 1000;
+
+    const hasPrev = logs.some(log => {
+      const logTime = new Date(log.logged_at).getTime();
+      return logTime >= prevWindowStart && logTime < prevWindowEnd && log.log_type !== 'note';
+    });
+
+    const hasNxt = logs.some(log => {
+      const logTime = new Date(log.logged_at).getTime();
+      return logTime > nextWindowStart && logTime <= nextWindowEnd && log.log_type !== 'note';
+    });
+
+    return { hasPrevious: hasPrev, hasNext: hasNxt };
+  }, [logs, startTime, endTime]);
+
   // Generate time labels (every 30 minutes for 4-hour window)
   const timeLabels = useMemo(() => {
     const labels = [];
@@ -116,12 +136,16 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
     <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
       {/* Header with navigation */}
       <div className="flex items-center justify-between mb-6">
-        <button
-          onClick={() => setWindowOffset(windowOffset - 4)}
-          className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
-        >
-          ← 4h
-        </button>
+        {hasPrevious ? (
+          <button
+            onClick={() => setWindowOffset(windowOffset - 4)}
+            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
+          >
+            ← 4h
+          </button>
+        ) : (
+          <div className="w-20" />
+        )}
 
         <div className="flex flex-col items-center gap-1">
           <h3 className="text-xl font-bold text-gray-100">Activity Timeline</h3>
@@ -135,12 +159,16 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
           )}
         </div>
 
-        <button
-          onClick={() => setWindowOffset(windowOffset + 4)}
-          className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
-        >
-          4h →
-        </button>
+        {hasNext ? (
+          <button
+            onClick={() => setWindowOffset(windowOffset + 4)}
+            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
+          >
+            4h →
+          </button>
+        ) : (
+          <div className="w-20" />
+        )}
       </div>
 
       {/* Nappy Summary - Above Timeline */}
