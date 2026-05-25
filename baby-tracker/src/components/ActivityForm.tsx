@@ -22,17 +22,9 @@ interface ToastState {
 export default function ActivityForm({ identity, onLogCreated, onSaveError, initialActivity }: ActivityFormProps) {
   // Determine initial step based on initialActivity
   const getInitialStep = (): FormStep => {
-    if (!initialActivity) return 'type';
-    switch (initialActivity) {
-      case 'feed':
-        return 'feed-type';
-      case 'sleep':
-        return 'sleep-duration';
-      case 'nappy':
-        return 'nappy-type';
-      default:
-        return 'type';
-    }
+    // Always start with timing if activity is pre-selected
+    if (initialActivity) return 'timing';
+    return 'type';
   };
 
   const [step, setStep] = useState<FormStep>(getInitialStep());
@@ -185,6 +177,9 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
 
   // Step 1.5: Choose timing (now or earlier)
   if (step === 'timing') {
+    const [showTimeInput, setShowTimeInput] = useState(false);
+    const [hoursAgo, setHoursAgo] = useState('1');
+
     const handleNow = () => {
       setCustomTime(null);
       // Route to next step based on activity type
@@ -197,11 +192,10 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
       }
     };
 
-    const handleEarlier = () => {
-      const hours = prompt('How many hours ago? (e.g., 1.5 for 1 hour 30 min)');
-      if (hours && !isNaN(Number(hours))) {
-        const hoursAgo = Number(hours);
-        const pastTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+    const handleEarlierConfirm = () => {
+      const hours = parseFloat(hoursAgo);
+      if (!isNaN(hours) && hours > 0) {
+        const pastTime = new Date(Date.now() - hours * 60 * 60 * 1000);
         setCustomTime(pastTime.toISOString());
 
         // Route to next step
@@ -218,35 +212,85 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     return (
       <div className="space-y-3">
         <button
-          onClick={resetForm}
-          className="text-gray-600 hover:text-gray-900 flex items-center gap-1"
+          onClick={() => initialActivity ? resetForm() : setStep('type')}
+          className="text-gray-600 hover:text-gray-900 flex items-center gap-1 min-h-[48px]"
         >
           ← Back
         </button>
 
         <h2 className="text-lg font-semibold text-gray-900 text-center">When did it happen?</h2>
 
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={handleNow}
-            className="bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
-          >
-            <span className="text-5xl">⏰</span>
-            <span className="text-lg font-semibold">Just Now</span>
-          </button>
+        {!showTimeInput ? (
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={handleNow}
+              className="bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
+            >
+              <span className="text-5xl">⏰</span>
+              <span className="text-lg font-semibold">Just Now</span>
+            </button>
 
-          <button
-            onClick={handleEarlier}
-            className="bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
-          >
-            <span className="text-5xl">⏮️</span>
-            <span className="text-lg font-semibold">Earlier</span>
-          </button>
-        </div>
+            <button
+              onClick={() => setShowTimeInput(true)}
+              className="bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
+            >
+              <span className="text-5xl">⏮️</span>
+              <span className="text-lg font-semibold">Earlier</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3 bg-gray-100 rounded-xl p-4">
+            <p className="text-sm text-gray-700 text-center font-medium">How many hours ago?</p>
 
-        {customTime && (
-          <p className="text-sm text-gray-600 text-center">
-            Logging at: {new Date(customTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+            <div className="grid grid-cols-4 gap-2">
+              {['0.5', '1', '2', '3'].map(hours => (
+                <button
+                  key={hours}
+                  onClick={() => {
+                    setHoursAgo(hours);
+                    const h = parseFloat(hours);
+                    const pastTime = new Date(Date.now() - h * 60 * 60 * 1000);
+                    setCustomTime(pastTime.toISOString());
+                    handleEarlierConfirm();
+                  }}
+                  className="bg-white hover:bg-gray-200 active:scale-95 border border-gray-300 text-gray-900 rounded-xl py-4 transition-all font-semibold"
+                >
+                  {hours}h
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                step="0.5"
+                min="0.5"
+                max="24"
+                value={hoursAgo}
+                onChange={(e) => setHoursAgo(e.target.value)}
+                placeholder="Hours"
+                className="flex-1 bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-center text-lg font-semibold"
+              />
+              <button
+                onClick={handleEarlierConfirm}
+                className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-3 font-semibold min-h-[48px]"
+              >
+                OK
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowTimeInput(false)}
+              className="w-full text-gray-600 hover:text-gray-900 text-sm min-h-[48px]"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        {customTime && !showTimeInput && (
+          <p className="text-sm text-gray-600 text-center font-medium">
+            Time: {new Date(customTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
           </p>
         )}
       </div>
