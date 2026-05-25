@@ -205,7 +205,7 @@
               },
               "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠂ Fix auto-process bug in tap to record"
+              "title": "Terminal: ⠂ Push pending changes to GitHub"
             }
           },
           {
@@ -244,6 +244,7 @@
   },
   "active": "3a4404d61509c4b2",
   "lastOpenFiles": [
+    "baby-tracker/FIXES_COMPLETED.md",
     "baby-tracker/src/components/VisualTimeline.tsx",
     "baby-tracker/src/components/TimelineLanes.tsx",
     "baby-tracker/src/components/Timeline.tsx",
@@ -262,7 +263,6 @@
     "baby-tracker/DEPLOYMENT_STATUS.md",
     "baby-tracker/PRD.md",
     "baby-tracker/CLAUDE.md",
-    "baby-tracker/src/components/ActivityForm.tsx",
     "baby-tracker/TEST_VOICE_INPUT.md",
     "CLAUDE.md",
     "baby-tracker/node_modules/playwright-core/README.md",
