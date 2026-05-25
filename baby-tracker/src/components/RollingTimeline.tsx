@@ -12,26 +12,42 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
   const [now, setNow] = useState(Date.now());
   const [windowOffset, setWindowOffset] = useState(0); // Hours offset from now
 
-  // Update "now" every minute to shift timeline
+  // Update "now" every minute
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(Date.now());
-    }, 60000); // 60 seconds
+    }, 60000);
     return () => clearInterval(interval);
   }, []);
 
+  // Calculate current 4-hour block (e.g., if 15:20, show 12:00–16:00)
+  const getCurrentBlockStart = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const hour = date.getHours();
+    const blockStart = Math.floor(hour / 4) * 4;
+    date.setHours(blockStart, 0, 0, 0);
+    return date.getTime();
+  };
+
   // Calculate 4-hour window
   const { startTime, endTime, visibleLogs, nappyLogs } = useMemo(() => {
-    const centerTime = now + (windowOffset * 60 * 60 * 1000);
-    const start = centerTime - 2 * 60 * 60 * 1000; // 2 hours before center
-    const end = centerTime + 2 * 60 * 60 * 1000; // 2 hours after center
+    const blockStart = getCurrentBlockStart(now);
+    const offsetMs = windowOffset * 4 * 60 * 60 * 1000;
+    const start = blockStart + offsetMs;
+    const end = start + 4 * 60 * 60 * 1000;
 
     const visible = logs.filter(log => {
+      if (log.log_type === 'note') return false;
+
       const logTime = new Date(log.logged_at).getTime();
-      return logTime >= start && logTime <= end && log.log_type !== 'note';
+      // For sleep activities, check if any part overlaps with window
+      if (log.log_type === 'sleep' && log.duration_minutes) {
+        const sleepEnd = logTime + log.duration_minutes * 60 * 1000;
+        return logTime < end && sleepEnd > start;
+      }
+      return logTime >= start && logTime < end;
     });
 
-    // Separate nappies from timed activities
     const nappies = visible.filter(log => log.log_type === 'nappy');
     const timed = visible.filter(log => log.log_type !== 'nappy');
 
@@ -42,14 +58,6 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
       nappyLogs: nappies,
     };
   }, [logs, now, windowOffset]);
-
-  // Find max duration for Y-axis scaling
-  const maxDuration = useMemo(() => {
-    const durations = visibleLogs
-      .map(log => log.duration_minutes || 0)
-      .filter(d => d > 0);
-    return durations.length > 0 ? Math.max(...durations, 60) : 120;
-  }, [visibleLogs]);
 
   // Check if there are activities in next/previous windows
   const { hasPrevious, hasNext } = useMemo(() => {
@@ -63,23 +71,31 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
       return logTime >= prevWindowStart && logTime < prevWindowEnd && log.log_type !== 'note';
     });
 
-    const hasNxt = logs.some(log => {
+    // Hide next button if no activities AND window is in the future
+    const hasNextActivities = logs.some(log => {
       const logTime = new Date(log.logged_at).getTime();
-      return logTime > nextWindowStart && logTime <= nextWindowEnd && log.log_type !== 'note';
+      return logTime >= nextWindowStart && logTime < nextWindowEnd && log.log_type !== 'note';
     });
+    const nextWindowIsFuture = nextWindowStart > now;
 
-    return { hasPrevious: hasPrev, hasNext: hasNxt };
-  }, [logs, startTime, endTime]);
+    return {
+      hasPrevious: hasPrev,
+      hasNext: hasNextActivities || !nextWindowIsFuture
+    };
+  }, [logs, startTime, endTime, now]);
 
-  // Generate time labels (every 30 minutes for 4-hour window)
+  // Generate hour labels for 4-hour window (5 labels: start, +1h, +2h, +3h, +4h)
   const timeLabels = useMemo(() => {
     const labels = [];
-    for (let i = 0; i <= 8; i++) {
-      const time = startTime + i * 30 * 60 * 1000; // 30-minute intervals
+    for (let i = 0; i <= 4; i++) {
+      const time = startTime + i * 60 * 60 * 1000;
       const date = new Date(time);
+      const hour = date.getHours();
+      const ampm = hour >= 12 ? 'pm' : 'am';
+      const displayHour = hour % 12 || 12;
       labels.push({
         time,
-        label: date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0'),
+        label: `${displayHour}${ampm}`,
       });
     }
     return labels;
@@ -93,7 +109,6 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
           hoverColor: 'hover:bg-blue-600',
           label: 'Sleep',
           icon: '😴',
-          detail: `${Math.floor((log.duration_minutes || 0) / 60)}h ${(log.duration_minutes || 0) % 60}m`,
         };
       case 'breastfeed':
         return {
@@ -101,7 +116,6 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
           hoverColor: 'hover:bg-green-600',
           label: 'Breastfeed',
           icon: '🤱',
-          detail: `${log.side} • ${log.duration_minutes}m`,
         };
       case 'bottle':
         return {
@@ -109,7 +123,6 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
           hoverColor: 'hover:bg-teal-600',
           label: 'Bottle',
           icon: '🍼',
-          detail: `${log.amount_ml}ml`,
         };
       default:
         return {
@@ -117,20 +130,78 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
           hoverColor: 'hover:bg-gray-600',
           label: 'Activity',
           icon: '📝',
-          detail: '',
         };
     }
   };
 
-  const getBarPosition = (logTime: number) => {
-    const relativeTime = logTime - startTime;
+  // Calculate position and width for activity bars
+  const getBarGeometry = (log: Log) => {
+    const logTime = new Date(log.logged_at).getTime();
     const windowDuration = endTime - startTime;
-    return (relativeTime / windowDuration) * 100;
+
+    if (log.log_type === 'sleep' && log.duration_minutes) {
+      const sleepEnd = logTime + log.duration_minutes * 60 * 1000;
+      const visibleStart = Math.max(logTime, startTime);
+      const visibleEnd = Math.min(sleepEnd, endTime);
+
+      const leftPos = ((visibleStart - startTime) / windowDuration) * 100;
+      const width = ((visibleEnd - visibleStart) / windowDuration) * 100;
+
+      return {
+        left: leftPos,
+        width: width,
+        isClippedLeft: logTime < startTime,
+        isClippedRight: sleepEnd > endTime,
+      };
+    }
+
+    // Non-sleep activities: fixed width, centered on time
+    const leftPos = ((logTime - startTime) / windowDuration) * 100;
+    return {
+      left: leftPos,
+      width: 3.5, // Fixed width percentage
+      isClippedLeft: false,
+      isClippedRight: false,
+    };
   };
 
-  const getBarHeight = (duration: number) => {
-    return Math.max((duration / maxDuration) * 100, 8); // Min 8% height
-  };
+  // Detect and resolve overlapping bars
+  const getPositionedLogs = useMemo(() => {
+    const positioned: Array<{
+      log: Log;
+      geometry: ReturnType<typeof getBarGeometry>;
+      lane: number;
+    }> = [];
+
+    // Sort by time
+    const sortedLogs = [...visibleLogs].sort((a, b) =>
+      new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime()
+    );
+
+    sortedLogs.forEach(log => {
+      const geometry = getBarGeometry(log);
+      let lane = 0;
+
+      // Find non-overlapping lane
+      while (true) {
+        const overlaps = positioned.some(p => {
+          if (p.lane !== lane) return false;
+          const thisStart = geometry.left;
+          const thisEnd = geometry.left + geometry.width;
+          const otherStart = p.geometry.left;
+          const otherEnd = p.geometry.left + p.geometry.width;
+          return !(thisEnd <= otherStart || thisStart >= otherEnd);
+        });
+
+        if (!overlaps) break;
+        lane++;
+      }
+
+      positioned.push({ log, geometry, lane });
+    });
+
+    return positioned;
+  }, [visibleLogs, startTime, endTime]);
 
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
@@ -138,13 +209,13 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
       <div className="flex items-center justify-between mb-6">
         {hasPrevious ? (
           <button
-            onClick={() => setWindowOffset(windowOffset - 4)}
+            onClick={() => setWindowOffset(windowOffset - 1)}
             className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
           >
-            ← 4h
+            ← Previous 4h
           </button>
         ) : (
-          <div className="w-20" />
+          <div className="w-32" />
         )}
 
         <div className="flex flex-col items-center gap-1">
@@ -161,41 +232,41 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
 
         {hasNext ? (
           <button
-            onClick={() => setWindowOffset(windowOffset + 4)}
+            onClick={() => setWindowOffset(windowOffset + 1)}
             className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
           >
-            4h →
+            Next 4h →
           </button>
         ) : (
-          <div className="w-20" />
+          <div className="w-32" />
         )}
       </div>
 
-      {/* Nappy Summary - Above Timeline */}
+      {/* Nappy Summary */}
       {nappyLogs.length > 0 && (
         <div className="mb-6 bg-yellow-900/20 border border-yellow-700/50 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-3xl">🧷</span>
-              <div>
-                <h4 className="text-lg font-bold text-yellow-200">Nappy Changes</h4>
-                <p className="text-sm text-yellow-300/70">{nappyLogs.length} in this window</p>
-              </div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-3xl">🧷</span>
+            <div>
+              <h4 className="text-lg font-bold text-yellow-200">Nappy Changes</h4>
+              <p className="text-sm text-yellow-300/70">{nappyLogs.length} in this window</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+
+          {/* Nappy markers on timeline */}
+          <div className="relative h-12 bg-gray-900/50 rounded-lg">
             {nappyLogs.map(log => {
-              const time = new Date(log.logged_at).toLocaleTimeString('en-GB', {
-                hour: '2-digit',
-                minute: '2-digit'
-              });
+              const logTime = new Date(log.logged_at).getTime();
+              const leftPos = ((logTime - startTime) / (endTime - startTime)) * 100;
               return (
                 <button
                   key={log.id}
                   onClick={() => onActivityTap(log)}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-lg font-semibold text-sm transition-colors active:scale-95 min-h-[48px]"
+                  className="absolute top-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-500 hover:bg-yellow-600 rounded-full flex items-center justify-center text-lg transition-all active:scale-95 shadow-lg"
+                  style={{ left: `${leftPos}%`, transform: 'translate(-50%, -50%)' }}
+                  title={`${new Date(log.logged_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} • ${log.nappy_type}`}
                 >
-                  {time} • {log.nappy_type}
+                  🧷
                 </button>
               );
             })}
@@ -203,103 +274,85 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
         </div>
       )}
 
-      {/* Timeline Container - Much Taller */}
-      <div className="relative h-[500px] bg-gray-900 rounded-xl overflow-hidden">
-        {/* Y-axis labels */}
-        <div className="absolute left-0 top-0 bottom-12 w-12 flex flex-col justify-between text-sm text-gray-400 pr-2 font-medium">
-          <span>{maxDuration}m</span>
-          <span>{Math.floor(maxDuration * 0.75)}m</span>
-          <span>{Math.floor(maxDuration * 0.5)}m</span>
-          <span>{Math.floor(maxDuration * 0.25)}m</span>
-          <span>0m</span>
-        </div>
-
+      {/* Timeline Container */}
+      <div className="relative h-[400px] bg-gray-900 rounded-xl overflow-hidden">
         {/* Main timeline area */}
-        <div className="absolute left-14 right-4 top-4 bottom-12">
-          {/* Vertical grid lines */}
+        <div className="absolute inset-4 bottom-16">
+          {/* Vertical grid lines at each hour */}
           {timeLabels.map((label, i) => {
-            const pos = (i / 8) * 100;
-            const isNow = Math.abs(label.time - now) < 30 * 60 * 1000 && windowOffset === 0;
+            const pos = (i / 4) * 100;
             return (
               <div
                 key={i}
-                className={`absolute top-0 bottom-0 ${isNow ? 'w-1 bg-red-500 z-20' : 'w-px bg-gray-700'}`}
+                className="absolute top-0 bottom-0 w-px bg-gray-700"
                 style={{ left: `${pos}%` }}
-              >
-                {isNow && (
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-red-500 text-white text-xs px-2 py-1 rounded font-bold whitespace-nowrap">
-                    NOW
-                  </div>
-                )}
-              </div>
+              />
             );
           })}
 
-          {/* Activity bars - Taller, wider, with labels */}
-          {visibleLogs.map(log => {
-            const logTime = new Date(log.logged_at).getTime();
-            const leftPos = getBarPosition(logTime);
-            const height = getBarHeight(log.duration_minutes || 0);
+          {/* Activity bars */}
+          {getPositionedLogs.map(({ log, geometry, lane }) => {
             const details = getActivityDetails(log);
-            const timeStr = new Date(log.logged_at).toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit'
-            });
+            const isSleep = log.log_type === 'sleep';
 
             return (
               <div
                 key={log.id}
-                className="absolute bottom-0 group"
+                className="absolute group"
                 style={{
-                  left: `calc(${leftPos}% - 28px)`, // Center the 56px wide bar
-                  height: `${height}%`,
-                  minHeight: '60px',
+                  left: `${geometry.left}%`,
+                  width: isSleep ? `${geometry.width}%` : '56px',
+                  bottom: `${lane * 80 + 10}px`,
+                  height: '70px',
                 }}
               >
                 <button
                   onClick={() => onActivityTap(log)}
-                  className={`w-14 h-full ${details.color} ${details.hoverColor} rounded-t-xl transition-all active:scale-95 cursor-pointer shadow-lg border-2 border-gray-900 flex flex-col items-center justify-between py-2 relative`}
+                  className={`w-full h-full ${details.color} ${details.hoverColor} rounded-lg transition-all active:scale-95 cursor-pointer shadow-lg border-2 border-gray-900 flex items-center justify-center relative overflow-hidden`}
                 >
-                  {/* Icon at top */}
-                  <span className="text-2xl">{details.icon}</span>
-
-                  {/* Duration badge */}
-                  {(log.duration_minutes || 0) > 0 && (
-                    <span className="text-white font-bold text-xs bg-black/30 px-1 py-0.5 rounded">
-                      {log.duration_minutes}m
-                    </span>
+                  {/* Clipping indicators for sleep */}
+                  {geometry.isClippedLeft && (
+                    <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-white/40 to-transparent" />
+                  )}
+                  {geometry.isClippedRight && (
+                    <div className="absolute right-0 top-0 bottom-0 w-2 bg-gradient-to-l from-white/40 to-transparent" />
                   )}
 
+                  <span className="text-3xl">{details.icon}</span>
+
                   {/* Tooltip on hover */}
-                  <div className="invisible group-hover:visible absolute -top-16 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap z-30 shadow-xl border border-gray-700">
+                  <div className="invisible group-hover:visible absolute -top-14 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap z-30 shadow-xl border border-gray-700">
                     <div className="font-bold">{details.label}</div>
-                    <div className="text-gray-300">{timeStr}</div>
-                    <div className="text-gray-400">{details.detail}</div>
+                    {log.duration_minutes && (
+                      <div className="text-gray-300">{log.duration_minutes}min</div>
+                    )}
                   </div>
                 </button>
-
-                {/* Time label below bar */}
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-gray-400 whitespace-nowrap font-medium">
-                  {timeStr}
-                </div>
               </div>
             );
           })}
         </div>
 
-        {/* X-axis time labels */}
-        <div className="absolute left-14 right-4 bottom-0 h-12 flex justify-between items-end text-sm text-gray-400 font-medium pb-2">
-          {timeLabels.map((label, i) => {
-            if (i % 2 === 0) { // Show every hour
-              return <span key={i}>{label.label}</span>;
-            }
-            return <div key={i} />;
-          })}
+        {/* X-axis hour labels */}
+        <div className="absolute left-4 right-4 bottom-4 h-12 flex justify-between items-center text-sm text-gray-400 font-medium">
+          {timeLabels.map((label, i) => (
+            <span key={i} className="text-center">{label.label}</span>
+          ))}
         </div>
+
+        {/* Empty state */}
+        {visibleLogs.length === 0 && nappyLogs.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-gray-500">
+              <p className="text-lg">No activities in this window</p>
+              <p className="text-sm mt-1">Navigate to see other time periods</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 mt-6 text-sm text-gray-300">
+      <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-300">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-blue-500 rounded border-2 border-gray-900" />
           <span className="font-medium">Sleep</span>
@@ -312,23 +365,7 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
           <div className="w-4 h-4 bg-teal-500 rounded border-2 border-gray-900" />
           <span className="font-medium">Bottle</span>
         </div>
-        {windowOffset === 0 && (
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-4 bg-red-500" />
-            <span className="font-medium">Now</span>
-          </div>
-        )}
       </div>
-
-      {/* Empty state */}
-      {visibleLogs.length === 0 && nappyLogs.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-gray-500">
-            <p className="text-xl mb-2">No activities in this window</p>
-            <p className="text-sm">Try navigating to a different time period</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
