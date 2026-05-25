@@ -39,17 +39,8 @@ Baby tracking app for sleep-deprived parents.
 5. Always notify user with final status + production URL
 
 ## Non-Goals (v1)
-- No medical diagnosis
 - No push notifications
 - No multi-baby support
-
-## Feature Implementation Workflow
-
-Every feature must be:
-1. **Crash tested** in the running app before commit
-2. **Bug-fixed** until working
-3. **Committed** only when verified
-4. **Deployed** to Vercel with status confirmation
 
 ## Feedback workflow
 
@@ -57,9 +48,9 @@ Every feature must be:
    at the project root — written naturally, as spoken or dictated,
    no need to structure it.
 
-2. When told "action FEEDBACK.md":
+2. When told "action FEEDBACK.md" or "execute feedback.md":
    - Read FEEDBACK.md in full
-   - Do ask clarification questions if you need precisions on anything and provide answer for each that makes the more sense to you and ask for my input
+   - Ask clarification questions if anything is unclear, and provide your best answer for each question to get Franklin's input
    - Rewrite the contents into a structured Claude Code prompt 
      using the established format: goal, context, success criteria, 
      constraints
@@ -77,9 +68,11 @@ Every feature must be:
    - Test each feature in the running app (local dev server)
    - Verify all functionality works as expected
    - Fix any bugs discovered during testing
-   - Do NOT proceed until all features are verified working
+   - Commit changes only when verified working
+   - Deploy to Vercel and verify deployment succeeds (per Deployment Workflow above)
+   - Do NOT proceed until all features are tested and deployed
 
-5. When ALL items are complete, tested, and verified:
+5. When ALL items are complete, tested, and deployed:
    - Clear FEEDBACK.md entirely
    - Confirm to Franklin that FEEDBACK.md has been cleared
 
