@@ -4,17 +4,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLogs } from '@/hooks/useLogs';
 import { useBabyProfile } from '@/hooks/useBabyProfile';
-import {
-  evaluateFeedsMetric,
-  evaluateNappiesMetric,
-  evaluateSleepMetric,
-  evaluateTimeAwakeMetric,
-  getMostUrgentAlert,
-} from '@/lib/nhs-thresholds';
 import IdentityPicker from './IdentityPicker';
 import ActivityForm from './ActivityForm';
 import ActivityButtons from './ActivityButtons';
-import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
 import RecentLogs from './RecentLogs';
 import Navbar from './Navbar';
@@ -25,13 +17,7 @@ export default function Dashboard() {
   const { profile } = useBabyProfile();
   const [showActivityForm, setShowActivityForm] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<'feed' | 'sleep' | 'nappy' | null>(null);
-  const [alertDismissed, setAlertDismissed] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  // Reset alert dismissed state when returning to dashboard
-  useEffect(() => {
-    setAlertDismissed(false);
-  }, []);
 
   // Filter logs for today (00:00 - now)
   const todayLogs = useMemo(() => {
@@ -46,18 +32,6 @@ export default function Dashboard() {
       return logDate >= dateStart && logDate <= dateEnd;
     });
   }, [logs]);
-
-  // Evaluate all metrics to get most urgent alert
-  const urgentAlert = useMemo(() => {
-    const feedsStatus = evaluateFeedsMetric(todayLogs, logs);
-    const nappiesStatus = evaluateNappiesMetric(todayLogs, profile?.dateOfBirth);
-    const sleepStatus = evaluateSleepMetric(todayLogs, logs, profile?.dateOfBirth);
-    const awakeStatus = evaluateTimeAwakeMetric(logs);
-
-    const message = getMostUrgentAlert(feedsStatus, nappiesStatus, sleepStatus, awakeStatus);
-
-    return message ? { type: 'urgent' as const, message, severity: 'warning' as const } : null;
-  }, [todayLogs, logs, profile?.dateOfBirth]);
 
   const handleActivitySelect = (activity: 'feed' | 'sleep' | 'nappy') => {
     setSelectedActivity(activity);
@@ -138,13 +112,6 @@ export default function Dashboard() {
             </button>
           </div>
         )}
-
-        {/* Alert Banner (only when urgent red alerts) */}
-        <AlertBanner
-          alert={urgentAlert}
-          dismissed={alertDismissed}
-          onDismiss={() => setAlertDismissed(true)}
-        />
 
         {/* Activity Buttons */}
         <ActivityButtons onActivitySelect={handleActivitySelect} />
