@@ -118,7 +118,7 @@ export default function BabyProfile() {
               type="date"
               value={dateOfBirth}
               onChange={(e) => setDateOfBirth(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg"
             />
           </div>
 
@@ -181,7 +181,7 @@ export default function BabyProfile() {
                   <span className="font-semibold">Sex:</span> {sex === 'female' ? 'Female' : 'Male'}
                 </p>
               )}
-              <p>
+              <p className="break-words">
                 <span className="font-semibold">Born:</span>{' '}
                 {new Date(dateOfBirth).toLocaleDateString('en-US', {
                   month: 'long',
