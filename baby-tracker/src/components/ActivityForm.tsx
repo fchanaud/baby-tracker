@@ -40,6 +40,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [customTime, setCustomTime] = useState<string | null>(null);
+  const [showTimeInput, setShowTimeInput] = useState(false);
+  const [hoursAgo, setHoursAgo] = useState('1');
 
 
   const resetForm = () => {
@@ -51,6 +53,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     setDuration(null);
     setError(null);
     setCustomTime(null);
+    setShowTimeInput(false);
+    setHoursAgo('1');
   };
 
   const saveLog = async (logData: any) => {
@@ -177,9 +181,6 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
 
   // Step 1.5: Choose timing (now or earlier)
   if (step === 'timing') {
-    const [showTimeInput, setShowTimeInput] = useState(false);
-    const [hoursAgo, setHoursAgo] = useState('1');
-
     const handleNow = () => {
       setCustomTime(null);
       // Route to next step based on activity type
