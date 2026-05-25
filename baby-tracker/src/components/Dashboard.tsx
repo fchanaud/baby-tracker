@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [showActivityForm, setShowActivityForm] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<'feed' | 'sleep' | 'nappy' | null>(null);
   const [alertDismissed, setAlertDismissed] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Reset alert dismissed state when returning to dashboard
   useEffect(() => {
@@ -67,6 +68,13 @@ export default function Dashboard() {
     refresh();
     setShowActivityForm(false);
     setSelectedActivity(null);
+    setSaveError(null);
+  };
+
+  const handleSaveError = (error: string) => {
+    setSaveError(error);
+    setShowActivityForm(false);
+    setSelectedActivity(null);
   };
 
   // Show identity picker if not set (after all hooks)
@@ -102,6 +110,7 @@ export default function Dashboard() {
           <ActivityForm
             identity={identity}
             onLogCreated={handleLogCreated}
+            onSaveError={handleSaveError}
             initialActivity={selectedActivity}
           />
         </div>
@@ -115,6 +124,21 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* Save Error Banner */}
+        {saveError && (
+          <div className="bg-red-100 border border-red-300 rounded-xl p-4 flex items-center gap-3">
+            <span className="text-2xl flex-shrink-0">❌</span>
+            <p className="text-red-900 font-semibold flex-1">{saveError}</p>
+            <button
+              onClick={() => setSaveError(null)}
+              className="text-red-700 hover:text-red-900 font-bold text-xl flex-shrink-0 min-h-[48px] min-w-[48px] flex items-center justify-center"
+              aria-label="Dismiss error"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {/* Alert Banner (only when urgent red alerts) */}
         <AlertBanner
           alert={urgentAlert}

@@ -8,6 +8,7 @@ import Toast from './Toast';
 interface ActivityFormProps {
   identity: Identity;
   onLogCreated: () => void;
+  onSaveError?: (error: string) => void;
   initialActivity?: 'feed' | 'sleep' | 'nappy';
 }
 
@@ -18,7 +19,7 @@ interface ToastState {
   type: 'success' | 'error';
 }
 
-export default function ActivityForm({ identity, onLogCreated, initialActivity }: ActivityFormProps) {
+export default function ActivityForm({ identity, onLogCreated, onSaveError, initialActivity }: ActivityFormProps) {
   // Determine initial step based on initialActivity
   const getInitialStep = (): FormStep => {
     if (!initialActivity) return 'type';
@@ -79,10 +80,15 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
       const result = await response.json();
 
       if (!response.ok) {
-        const errorMsg = result.error || 'Failed to save';
-        setError(errorMsg);
-        setToast({ message: errorMsg, type: 'error' });
-        setStep('type');
+        const errorMsg = result.error || 'Failed to save log';
+        if (onSaveError) {
+          onSaveError(errorMsg);
+          resetForm();
+        } else {
+          setError(errorMsg);
+          setToast({ message: errorMsg, type: 'error' });
+          setStep('type');
+        }
         return;
       }
 
@@ -112,10 +118,15 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
       resetForm();
     } catch (err) {
       console.error('Save error:', err);
-      const errorMsg = 'Failed to save. Try again.';
-      setError(errorMsg);
-      setToast({ message: errorMsg, type: 'error' });
-      setStep('type');
+      const errorMsg = 'Failed to save. Please try again.';
+      if (onSaveError) {
+        onSaveError(errorMsg);
+        resetForm();
+      } else {
+        setError(errorMsg);
+        setToast({ message: errorMsg, type: 'error' });
+        setStep('type');
+      }
     }
   };
 
