@@ -220,14 +220,6 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
 
         <div className="flex flex-col items-center gap-1">
           <h3 className="text-xl font-bold text-gray-100">Activity Timeline</h3>
-          {windowOffset !== 0 && (
-            <button
-              onClick={() => setWindowOffset(0)}
-              className="text-xs text-blue-400 hover:text-blue-300"
-            >
-              Back to now
-            </button>
-          )}
         </div>
 
         {hasNext ? (
