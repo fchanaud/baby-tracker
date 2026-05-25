@@ -28,7 +28,7 @@ export default function Navbar({ identity, onSwitchIdentity }: NavbarProps) {
       <div className="flex gap-2 max-w-2xl mx-auto">
         <Link
           href="/"
-          className={`flex-1 text-center py-2 px-4 rounded-lg transition-colors min-h-[48px] flex items-center justify-center font-medium ${
+          className={`flex-1 text-center py-2 px-3 rounded-lg transition-colors min-h-[48px] flex items-center justify-center font-medium text-sm ${
             pathname === '/'
               ? 'bg-blue-600 text-white'
               : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
@@ -37,14 +37,24 @@ export default function Navbar({ identity, onSwitchIdentity }: NavbarProps) {
           Dashboard
         </Link>
         <Link
-          href="/reports"
-          className={`flex-1 text-center py-2 px-4 rounded-lg transition-colors min-h-[48px] flex items-center justify-center font-medium ${
-            pathname === '/reports'
+          href="/activity"
+          className={`flex-1 text-center py-2 px-3 rounded-lg transition-colors min-h-[48px] flex items-center justify-center font-medium text-sm ${
+            pathname === '/activity'
               ? 'bg-blue-600 text-white'
               : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
           }`}
         >
-          Reports
+          Activity
+        </Link>
+        <Link
+          href="/insights"
+          className={`flex-1 text-center py-2 px-3 rounded-lg transition-colors min-h-[48px] flex items-center justify-center font-medium text-sm ${
+            pathname === '/insights'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+          }`}
+        >
+          Insights
         </Link>
       </div>
     </div>

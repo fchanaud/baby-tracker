@@ -2,20 +2,14 @@
 
 import { useState } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
-import { useLogs } from '@/hooks/useLogs';
 import IdentityPicker from './IdentityPicker';
 import Navbar from './Navbar';
-import RollingTimeline from './RollingTimeline';
-import ActivityBottomSheet from './ActivityBottomSheet';
-import type { Log } from '@/lib/types';
 
-export default function Reports() {
+export default function Insights() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
-  const { logs } = useLogs();
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
 
   const handleAsk = async () => {
     if (!question.trim()) return;
@@ -128,13 +122,7 @@ export default function Reports() {
             </div>
           )}
         </div>
-
-        {/* Rolling Timeline */}
-        <RollingTimeline logs={logs} onActivityTap={setSelectedLog} />
       </div>
-
-      {/* Activity Detail Bottom Sheet */}
-      <ActivityBottomSheet log={selectedLog} onClose={() => setSelectedLog(null)} />
     </div>
   );
 }

@@ -205,7 +205,7 @@
               },
               "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠐ Push pending changes to GitHub"
+              "title": "Terminal: ⠂ Push pending changes to GitHub"
             }
           },
           {
@@ -244,19 +244,19 @@
   },
   "active": "3a4404d61509c4b2",
   "lastOpenFiles": [
+    "baby-tracker/src/app/insights/page.tsx",
+    "baby-tracker/src/app/activity/page.tsx",
+    "baby-tracker/src/app/insights",
+    "baby-tracker/src/app/activity",
+    "baby-tracker/src/components/Insights.tsx",
+    "baby-tracker/src/components/Activity.tsx",
     "baby-tracker/src/app/reports/page.tsx",
     "baby-tracker/src/app/reports",
     "baby-tracker/src/components/Reports.tsx",
     "baby-tracker/src/components/ActivityBottomSheet.tsx",
     "baby-tracker/src/components/RollingTimeline.tsx",
-    "baby-tracker/src/app/api/query/route.ts",
-    "baby-tracker/src/app/api/query",
-    "baby-tracker/src/components/Navbar.tsx",
     "baby-tracker/DATABASE_FIX_REQUIRED.md",
-    "baby-tracker/supabase/migrations/fix_nappy_both_constraint.sql",
     "baby-tracker/FIXES_COMPLETED.md",
-    "baby-tracker/src/components/VisualTimeline.tsx",
-    "baby-tracker/src/components/TimelineLanes.tsx",
     "baby-tracker/COMPREHENSIVE_AUDIT_REPORT.md",
     "baby-tracker/FIX_SUMMARY.md",
     "baby-tracker/FIXES_APPLIED.md",

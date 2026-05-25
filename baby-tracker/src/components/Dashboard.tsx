@@ -25,6 +25,12 @@ export default function Dashboard() {
   const { profile } = useBabyProfile();
   const [showActivityForm, setShowActivityForm] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<'feed' | 'sleep' | 'nappy' | null>(null);
+  const [alertDismissed, setAlertDismissed] = useState(false);
+
+  // Reset alert dismissed state when returning to dashboard
+  useEffect(() => {
+    setAlertDismissed(false);
+  }, []);
 
   // Filter logs for today (00:00 - now)
   const todayLogs = useMemo(() => {
@@ -110,7 +116,11 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Alert Banner (only when urgent red alerts) */}
-        <AlertBanner alert={urgentAlert} />
+        <AlertBanner
+          alert={urgentAlert}
+          dismissed={alertDismissed}
+          onDismiss={() => setAlertDismissed(true)}
+        />
 
         {/* Activity Buttons */}
         <ActivityButtons onActivitySelect={handleActivitySelect} />
