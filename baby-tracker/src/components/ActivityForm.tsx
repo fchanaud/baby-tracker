@@ -101,9 +101,6 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
         case 'nappy':
           message += `Nappy - ${logData.nappy_type}`;
           break;
-        case 'note':
-          message += `Note - ${logData.note}`;
-          break;
       }
 
       setToast({ message, type: 'success' });
@@ -132,7 +129,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {/* Feed */}
           <button
             onClick={() => {
@@ -167,21 +164,6 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
           >
             <span className="text-5xl">🧷</span>
             <span className="text-lg font-semibold">Nappy</span>
-          </button>
-
-          {/* Note */}
-          <button
-            onClick={() => {
-              const note = prompt('Add a note:');
-              if (note && note.trim()) {
-                setLogType('note');
-                saveLog({ log_type: 'note', note: note.trim() });
-              }
-            }}
-            className="bg-purple-500 hover:bg-purple-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
-          >
-            <span className="text-5xl">📝</span>
-            <span className="text-lg font-semibold">Note</span>
           </button>
         </div>
       </div>

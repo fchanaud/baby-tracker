@@ -8,9 +8,10 @@ interface RecentLogsProps {
 }
 
 function RecentLogs({ logs }: RecentLogsProps) {
-  // Sort by logged_at descending and take first 8 - memoized
+  // Sort by logged_at descending, filter out notes, and take first 8 - memoized
   const recentLogs = useMemo(() =>
     logs
+      .filter(log => log.log_type !== 'note')
       .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
       .slice(0, 8),
     [logs]
@@ -80,12 +81,6 @@ const LogEntry = memo(function LogEntry({ log }: { log: Log }) {
       emoji = '🧷';
       activityType = 'Nappy';
       detail = (log.nappy_type || '').charAt(0).toUpperCase() + (log.nappy_type || '').slice(1);
-      break;
-    case 'note':
-      emoji = '📝';
-      activityType = 'Note';
-      detail = log.note?.substring(0, 30) || '';
-      if (log.note && log.note.length > 30) detail += '...';
       break;
   }
 
