@@ -225,6 +225,21 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
 
   // Step 2b: Breast feed side
   if (step === 'feed-side') {
+    // Smart defaults: predict next side based on last feed
+    const lastSide = typeof window !== 'undefined' ? localStorage.getItem('lastBreastfeedSide') : null;
+    const suggestedSide = lastSide === 'left' ? 'right' : lastSide === 'right' ? 'left' : 'left';
+    const defaultDuration = 15; // minutes
+
+    const handleQuickLog = () => {
+      setSide(suggestedSide as Side);
+      setDuration(defaultDuration);
+      // Save to localStorage before logging
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('lastBreastfeedSide', suggestedSide);
+      }
+      saveLog({ log_type: 'breastfeed', side: suggestedSide, duration_minutes: defaultDuration });
+    };
+
     return (
       <div className="space-y-3">
         <button
@@ -235,6 +250,21 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
         </button>
 
         <h2 className="text-lg font-semibold text-gray-900 text-center">Which side?</h2>
+
+        {/* Quick Log Button */}
+        <button
+          onClick={handleQuickLog}
+          className="w-full bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[80px] flex items-center justify-center gap-3 shadow-lg border-2 border-pink-400"
+        >
+          <span className="text-3xl">⚡</span>
+          <div className="text-left">
+            <div className="text-xl font-bold">Quick Log: {suggestedSide.charAt(0).toUpperCase() + suggestedSide.slice(1)} - {defaultDuration}min</div>
+            <div className="text-sm text-pink-100">One tap to save</div>
+          </div>
+          <span className="text-3xl">✓</span>
+        </button>
+
+        <p className="text-sm text-gray-600 text-center">Or choose manually:</p>
 
         <div className="grid grid-cols-3 gap-3">
           <button
@@ -295,6 +325,10 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
               key={dur}
               onClick={() => {
                 setDuration(dur);
+                // Save side to localStorage for next time
+                if (typeof window !== 'undefined' && side) {
+                  localStorage.setItem('lastBreastfeedSide', side);
+                }
                 saveLog({ log_type: 'breastfeed', side, duration_minutes: dur });
               }}
               className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[100px] flex flex-col items-center justify-center gap-2"

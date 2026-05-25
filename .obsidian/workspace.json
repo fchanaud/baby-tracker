@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "baby-tracker/CLAUDE.md",
+                "file": "baby-tracker/COMPREHENSIVE_AUDIT_REPORT.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "CLAUDE"
+              "title": "COMPREHENSIVE_AUDIT_REPORT"
             }
           }
         ],
@@ -205,7 +205,7 @@
               },
               "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠂ Explore application context window"
+              "title": "Terminal: ✳ Fix auto-process bug in tap to record"
             }
           },
           {
@@ -228,7 +228,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 493.5
+    "width": 687.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -244,7 +244,18 @@
   },
   "active": "3a4404d61509c4b2",
   "lastOpenFiles": [
+    "baby-tracker/COMPREHENSIVE_AUDIT_REPORT.md",
+    "baby-tracker/FIX_SUMMARY.md",
+    "baby-tracker/src/lib/nhs-thresholds.ts",
+    "baby-tracker/FIXES_APPLIED.md",
+    "baby-tracker/DASHBOARD_COMPLETE.md",
+    "baby-tracker/src/components/ActivityButtons.tsx",
+    "baby-tracker/NHS_THRESHOLDS.md",
+    "baby-tracker/DEPLOYMENT_STATUS.md",
+    "baby-tracker/PRD.md",
     "baby-tracker/CLAUDE.md",
+    "baby-tracker/src/components/ActivityForm.tsx",
+    "baby-tracker/TEST_VOICE_INPUT.md",
     "CLAUDE.md",
     "baby-tracker/supabase/migrations/add_poo_consistency.sql",
     "baby-tracker/supabase/migrations",
@@ -253,9 +264,6 @@
     "baby-tracker/src/components/DurationBar.tsx.tmp.85015.21cfd89c9f6e",
     "baby-tracker/src/hooks/useBabyProfile.ts",
     "baby-tracker/src/components/BabyProfile.tsx",
-    "baby-tracker/src/app/profile/page.tsx",
-    "baby-tracker/src/app/profile",
-    "baby-tracker/node_modules/playwright/node_modules/fsevents/build/config.gypi",
     "baby-tracker/node_modules/playwright-core/README.md",
     "baby-tracker/node_modules/playwright/README.md",
     "baby-tracker/node_modules/@tybys/wasm-util/README.md",
@@ -272,22 +280,14 @@
     "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/session-management.md",
     "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/request-mocking.md",
     "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/playwright-tests.md",
-    "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/running-code.md",
-    "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/element-attributes.md",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/safari-na3_-uQk.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-nightly-Cp5nfeDT.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-beta-k3eOH_eK.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-1bWoP6pv.svg",
-    "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/SKILL.md",
     "baby-tracker/node_modules/playwright-core/lib/vite/traceViewer/playwright-logo.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/recorder/playwright-logo.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/playwright-logo.svg",
-    "baby-tracker/node_modules/playwright-core/lib/tools/trace/SKILL.md",
     "baby-tracker/node_modules/playwright-core/lib/tools/dashboard/appIcon.png",
-    "baby-tracker/node_modules/playwright-core/lib/server/chromium/appIcon.png",
-    "baby-tracker/node_modules/playwright/lib/agents/playwright-test-planner.agent.md",
-    "baby-tracker/node_modules/playwright/lib/agents/playwright-test-plan.prompt.md",
-    "baby-tracker/node_modules/playwright/lib/agents/playwright-test-healer.agent.md",
-    "baby-tracker/node_modules/playwright/lib/agents/playwright-test-heal.prompt.md"
+    "baby-tracker/node_modules/playwright-core/lib/server/chromium/appIcon.png"
   ]
 }
