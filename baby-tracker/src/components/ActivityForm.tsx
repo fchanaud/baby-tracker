@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Identity } from '@/hooks/useIdentity';
 import { LogType, Side, NappyType, PooConsistency, Log } from '@/lib/types';
+import { getEnvironment } from '@/lib/supabase';
 import Toast from './Toast';
 
 interface ActivityFormProps {
@@ -96,6 +97,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           logged_by: identity,
           logged_at: customTime || new Date().toISOString(),
           needs_review: false,
+          environment: getEnvironment(),
         }),
       });
 

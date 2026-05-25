@@ -1,1 +1,1 @@
-Must be in a more human friendly format![[Screenshot 2026-05-25 at 15.47.10.png]] - remove especially the **
+delete all data for activities so I start with fresh dataset. Also, I want an easy way For Franklin only at the bottom of the page to use a test database environment with all exact same features so I can improve the app while it will be used in production. Production and test databases will be different

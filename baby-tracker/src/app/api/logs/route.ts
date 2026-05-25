@@ -5,7 +5,7 @@ import type { Database } from '@/lib/database.types';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { logged_by, log_type, side, duration_minutes, amount_ml, nappy_type, poo_consistency, note, logged_at } = body;
+    const { logged_by, log_type, side, duration_minutes, amount_ml, nappy_type, poo_consistency, note, logged_at, environment } = body;
 
     if (!logged_by || !log_type) {
       return NextResponse.json(
@@ -30,6 +30,9 @@ export async function POST(request: NextRequest) {
     if (poo_consistency) {
       (logEntry as any).poo_consistency = poo_consistency;
     }
+
+    // Add environment (defaults to production)
+    (logEntry as any).environment = environment ?? 'production';
 
     const { data, error } = await supabase
       .from('logs')

@@ -2,45 +2,33 @@
 
 ## What This Does
 
-Adds a Franklin-only environment toggle to switch between production and test databases. This allows you to:
+Adds a Franklin-only environment toggle to switch between production and test data within the same Supabase database. This allows you to:
 - Test new features while the app is in production use
-- Keep production data separate from test data
+- Keep production data separate from test data using an `environment` column
 - Easily switch between environments with one button
+- Use the same Supabase project (no need for a second project)
 
 ## Setup Instructions
 
-### 1. Create Test Supabase Project
+### 1. Add Environment Column to Database
 
 1. Go to https://supabase.com/dashboard
-2. Click "New Project"
-3. Name it: `baby-tracker-test`
-4. Set a password and region
-5. Wait for project to be created (~2 minutes)
+2. Open your baby-tracker project
+3. Go to SQL Editor
+4. Run this SQL:
 
-### 2. Copy Schema to Test Database
-
-1. In your new test project, go to SQL Editor
-2. Copy and paste the entire schema from `/tmp/baby-tracker-schema.sql`
-3. Run the SQL to create tables and indexes
-4. Verify tables exist in Table Editor
-
-### 3. Get Test Database Credentials
-
-1. In test project, go to Settings → API
-2. Copy these values:
-   - **Project URL** (starts with `https://`)
-   - **anon public key** (long JWT token)
-
-### 4. Add Credentials to .env.local
-
-Edit `.env.local` and fill in:
-
-```bash
-NEXT_PUBLIC_SUPABASE_TEST_URL=<your-test-project-url>
-NEXT_PUBLIC_SUPABASE_TEST_ANON_KEY=<your-test-anon-key>
+```sql
+ALTER TABLE logs ADD COLUMN IF NOT EXISTS environment TEXT DEFAULT 'production' CHECK (environment IN ('production', 'test'));
+CREATE INDEX IF NOT EXISTS idx_logs_environment ON logs(environment);
 ```
 
-### 5. Restart Dev Server
+### 2. Verify Setup
+
+1. Go to Table Editor → logs table
+2. Confirm the `environment` column exists
+3. All existing rows should have `environment='production'`
+
+### 3. Restart Dev Server (if running locally)
 
 ```bash
 npm run dev
@@ -51,35 +39,63 @@ npm run dev
 ### Switching Environments
 
 1. Login as Franklin
-2. Look at bottom of Dashboard page
+2. Look at bottom center of Dashboard page
 3. Click the environment badge to toggle:
-   - Green badge = Production database
-   - Yellow badge = Test database
-4. Page reloads and connects to selected environment
+   - **Green badge "ENV: PRODUCTION"** = Production data
+   - **Yellow badge "ENV: TEST"** = Test data
+4. Page reloads and shows data for selected environment
 
-### Environment Indicator
+### What Happens When You Switch
 
-The badge shows:
-- **ENV: PRODUCTION** (green) - using production database
-- **ENV: TEST** (yellow) - using test database
+- **Production mode**: Shows all logs where `environment='production'`
+- **Test mode**: Shows all logs where `environment='test'`
+- New logs are tagged with the current environment
+- Maeva only sees production data (toggle not visible to her)
 
-### Important Notes
+### Starting Fresh in Test Mode
 
-- Only Franklin can see the toggle (Maeva won't see it)
-- Selection persists in browser localStorage
-- Server-side operations always use production
-- Both databases have identical schema
-- Test database starts empty
+1. Switch to test environment
+2. Test environment starts empty (no data)
+3. Use the app normally - all new logs go to test environment
+4. Switch back to production anytime
+
+## Architecture
+
+- **Same database, same tables** - no separate test project needed
+- **Environment column** - filters data by `production` or `test`
+- **Client-side filtering** - `useLogs` hook filters by environment
+- **Server-side always production** - API routes (Insights, Normal Check) use production only
+- **localStorage persistence** - environment choice saved in browser
+
+## Important Notes
+
+- Only Franklin can see and use the toggle (Maeva won't see it)
+- Selection persists in browser localStorage per device
+- Server-side API calls always use production data
+- Both environments share the same schema
+- Test data is isolated from production data
 
 ## Troubleshooting
 
 **Toggle not visible:**
 - Make sure you're logged in as Franklin
+- Check browser console for errors
 
-**Can't switch environments:**
-- Check that test credentials are set in `.env.local`
-- Make sure dev server was restarted after adding credentials
+**No data after switching to test:**
+- This is expected - test environment starts empty
+- Add test data by using the app in test mode
 
-**Data not showing after switch:**
-- Test database starts empty - this is expected
-- Add test data using the app in test mode
+**Data not filtering correctly:**
+- Check that environment column was added successfully
+- Verify index was created (improves query performance)
+- Clear localStorage and try again: `localStorage.removeItem('baby-tracker-environment')`
+
+## Cleaning Up Test Data
+
+To delete all test data:
+
+```sql
+DELETE FROM logs WHERE environment = 'test';
+```
+
+This keeps production data intact.

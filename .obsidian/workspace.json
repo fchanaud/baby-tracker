@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "baby-tracker/COMPREHENSIVE_AUDIT_REPORT.md",
+                "file": "baby-tracker/TEST_ENVIRONMENT_SETUP.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "COMPREHENSIVE_AUDIT_REPORT"
+              "title": "TEST_ENVIRONMENT_SETUP"
             }
           }
         ],
@@ -93,7 +93,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 210.5
   },
   "right": {
     "id": "8e214f86cef350da",
@@ -205,7 +205,7 @@
               },
               "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠐ Push pending changes to GitHub"
+              "title": "Terminal: ⠐ Clarify app context status"
             }
           },
           {
@@ -242,19 +242,31 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "3a4404d61509c4b2",
+  "active": "01493ec42d64b668",
   "lastOpenFiles": [
-    "baby-tracker/src/app/insights/page.tsx",
-    "baby-tracker/src/app/activity/page.tsx",
-    "baby-tracker/src/app/insights",
-    "baby-tracker/src/app/activity",
-    "baby-tracker/src/components/Insights.tsx",
-    "baby-tracker/src/components/Activity.tsx",
-    "baby-tracker/src/app/reports/page.tsx",
-    "baby-tracker/src/app/reports",
-    "baby-tracker/src/components/Reports.tsx",
-    "baby-tracker/src/components/ActivityBottomSheet.tsx",
-    "baby-tracker/src/components/RollingTimeline.tsx",
+    "baby-tracker/TEST_ENVIRONMENT_SETUP.md",
+    "baby-tracker/src/components/EnvironmentToggle.tsx",
+    "baby-tracker/FEEDBACK.md",
+    "baby-tracker/CLAUDE.md",
+    "baby-tracker/DESIGN_SYSTEM.md",
+    "baby-tracker/PRD.md",
+    "baby-tracker/README.md",
+    "Screenshot 2026-05-25 at 16.27.40.png",
+    "Screenshot 2026-05-25 at 15.47.10.png",
+    "baby-tracker/src/components/NormalCheckSheet.tsx",
+    "baby-tracker/src/app/api/normal-check/route.ts",
+    "baby-tracker/src/app/api/normal-check/route.ts.tmp.25588.6ab6f9377b9d",
+    "baby-tracker/src/app/api/normal-check",
+    "baby-tracker/tsconfig.tsbuildinfo",
+    "baby-tracker/src/components/__tests__/RollingTimeline.test.tsx",
+    "baby-tracker/CLAUDE_API_AUDIT.md",
+    "baby-tracker/FEEDBACK_DONE.md",
+    "CLAUDE.md",
+    "baby-tracker/TIMELINE_TEST_PLAN.md",
+    "baby-tracker/src/components/__tests__",
+    "baby-tracker/jest.setup.js",
+    "baby-tracker/jest.config.js",
+    "baby-tracker/test-timeline-manually.md",
     "baby-tracker/DATABASE_FIX_REQUIRED.md",
     "baby-tracker/FIXES_COMPLETED.md",
     "baby-tracker/COMPREHENSIVE_AUDIT_REPORT.md",
@@ -263,23 +275,13 @@
     "baby-tracker/DASHBOARD_COMPLETE.md",
     "baby-tracker/NHS_THRESHOLDS.md",
     "baby-tracker/DEPLOYMENT_STATUS.md",
-    "baby-tracker/PRD.md",
-    "baby-tracker/CLAUDE.md",
     "baby-tracker/TEST_VOICE_INPUT.md",
-    "CLAUDE.md",
     "baby-tracker/node_modules/playwright-core/README.md",
     "baby-tracker/node_modules/playwright/README.md",
     "baby-tracker/node_modules/@tybys/wasm-util/README.md",
     "baby-tracker/node_modules/@emnapi/core/README.md",
     "baby-tracker/node_modules/@emnapi/runtime/README.md",
     "baby-tracker/node_modules/@emnapi/wasi-threads/README.md",
-    "baby-tracker/node_modules/playwright/node_modules/fsevents/README.md",
-    "baby-tracker/node_modules/fsevents/README.md",
-    "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/video-recording.md",
-    "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/tracing.md",
-    "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/test-generation.md",
-    "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/storage-state.md",
-    "baby-tracker/node_modules/playwright-core/lib/tools/cli-client/skill/references/spec-driven-testing.md",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/safari-na3_-uQk.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-nightly-Cp5nfeDT.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-beta-k3eOH_eK.svg",
@@ -287,7 +289,6 @@
     "baby-tracker/node_modules/playwright-core/lib/vite/traceViewer/playwright-logo.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/recorder/playwright-logo.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/playwright-logo.svg",
-    "baby-tracker/node_modules/playwright-core/lib/tools/dashboard/appIcon.png",
-    "baby-tracker/node_modules/playwright-core/lib/server/chromium/appIcon.png"
+    "baby-tracker/node_modules/playwright-core/lib/tools/dashboard/appIcon.png"
   ]
 }

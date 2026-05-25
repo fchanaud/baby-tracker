@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { supabase } from '@/lib/supabase';
+import { supabase, getEnvironment } from '@/lib/supabase';
 import type { Log } from '@/lib/types';
 
 export function useLogs() {
@@ -19,9 +19,11 @@ export function useLogs() {
 }
 
 async function fetchLogs(): Promise<Log[]> {
-  const { data, error } = await supabase
+  const environment = getEnvironment();
+  const { data, error} = await supabase
     .from('logs')
     .select('*')
+    .eq('environment', environment)
     .order('logged_at', { ascending: false })
     .limit(100);
 
