@@ -7,7 +7,7 @@ import { LogType, Side, NappyType, PooConsistency } from '@/lib/types';
 interface ActivityFormProps {
   identity: Identity;
   onLogCreated: () => void;
-  initialActivity?: 'feed' | 'sleep' | 'nappy' | 'note';
+  initialActivity?: 'feed' | 'sleep' | 'nappy';
 }
 
 type FormStep = 'type' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'saving';
@@ -23,9 +23,6 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
         return 'sleep-duration';
       case 'nappy':
         return 'nappy-type';
-      case 'note':
-        // Handle note immediately
-        return 'type'; // Will be handled in useEffect
       default:
         return 'type';
     }
@@ -35,8 +32,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
   const [logType, setLogType] = useState<LogType | null>(
     initialActivity === 'feed' ? 'breastfeed' :
     initialActivity === 'sleep' ? 'sleep' :
-    initialActivity === 'nappy' ? 'nappy' :
-    initialActivity === 'note' ? 'note' : null
+    initialActivity === 'nappy' ? 'nappy' : null
   );
   const [feedType, setFeedType] = useState<'breast' | 'bottle' | null>(null);
   const [side, setSide] = useState<Side | null>(null);
@@ -45,18 +41,6 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Handle note activity immediately
-  useEffect(() => {
-    if (initialActivity === 'note') {
-      const note = prompt('Add a note:');
-      if (note && note.trim()) {
-        saveLog({ log_type: 'note', note: note.trim() });
-      } else {
-        // User cancelled, go back
-        onLogCreated();
-      }
-    }
-  }, [initialActivity]);
 
   const resetForm = () => {
     setStep('type');

@@ -23,7 +23,7 @@ export default function Dashboard() {
   const { logs, refresh } = useLogs();
   const { profile } = useBabyProfile();
   const [showActivityForm, setShowActivityForm] = useState(false);
-  const [selectedActivity, setSelectedActivity] = useState<'feed' | 'sleep' | 'nappy' | 'note' | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<'feed' | 'sleep' | 'nappy' | null>(null);
   const [, forceUpdate] = useState(0);
 
   // Force re-render every 60 seconds for alert re-evaluation
@@ -61,7 +61,7 @@ export default function Dashboard() {
     return message ? { type: 'urgent' as const, message, severity: 'warning' as const } : null;
   }, [todayLogs, logs, profile?.dateOfBirth]);
 
-  const handleActivitySelect = (activity: 'feed' | 'sleep' | 'nappy' | 'note') => {
+  const handleActivitySelect = (activity: 'feed' | 'sleep' | 'nappy') => {
     setSelectedActivity(activity);
     setShowActivityForm(true);
   };

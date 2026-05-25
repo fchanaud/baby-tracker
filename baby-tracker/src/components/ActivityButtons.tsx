@@ -1,7 +1,7 @@
 'use client';
 
 interface ActivityButtonsProps {
-  onActivitySelect: (activity: 'feed' | 'sleep' | 'nappy' | 'note') => void;
+  onActivitySelect: (activity: 'feed' | 'sleep' | 'nappy') => void;
 }
 
 export default function ActivityButtons({ onActivitySelect }: ActivityButtonsProps) {
@@ -9,11 +9,10 @@ export default function ActivityButtons({ onActivitySelect }: ActivityButtonsPro
     { id: 'feed' as const, icon: '🍼', label: 'Feed', color: 'bg-pink-500 hover:bg-pink-600' },
     { id: 'sleep' as const, icon: '😴', label: 'Sleep', color: 'bg-blue-500 hover:bg-blue-600' },
     { id: 'nappy' as const, icon: '🧷', label: 'Nappy', color: 'bg-yellow-500 hover:bg-yellow-600' },
-    { id: 'note' as const, icon: '📝', label: 'Note', color: 'bg-purple-500 hover:bg-purple-600' },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-3 gap-3">
       {activities.map(activity => (
         <button
           key={activity.id}

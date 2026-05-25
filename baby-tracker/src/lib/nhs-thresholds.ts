@@ -67,6 +67,14 @@ export function getWetNappyTarget(dayOfLife: number): number {
 }
 
 /**
+ * Check if we should show pressure messages (after 4pm)
+ */
+function shouldShowPressureMessages(): boolean {
+  const hour = new Date().getHours();
+  return hour >= 16; // 4pm or later
+}
+
+/**
  * Evaluate feeds metric
  */
 export function evaluateFeedsMetric(
@@ -109,7 +117,7 @@ export function evaluateFeedsMetric(
   if (feedsToday >= 6 && feedsToday < 8) {
     return {
       state: 'amber',
-      message: 'Getting there — aim for 2 more feeds today',
+      message: shouldShowPressureMessages() ? 'Getting there — aim for 2 more feeds today' : undefined,
       target: 'target 8–12',
     };
   }
@@ -158,7 +166,7 @@ export function evaluateNappiesMetric(
   if (diff === 1) {
     return {
       state: 'amber',
-      message: 'Almost there — one more wet nappy expected',
+      message: shouldShowPressureMessages() ? 'Almost there — one more wet nappy expected' : undefined,
       target: `target ${target}+`,
     };
   }
@@ -230,7 +238,7 @@ export function evaluateSleepMetric(
   if (totalSleepHours >= 12 && totalSleepHours < 14) {
     return {
       state: 'amber',
-      message: "Slightly under — encourage a nap if she's calm",
+      message: shouldShowPressureMessages() ? "Slightly under — encourage a nap if she's calm" : undefined,
       target: 'target 14–19h',
     };
   }
@@ -284,7 +292,7 @@ export function evaluateTimeAwakeMetric(
   if (hoursAwake >= NHS_THRESHOLDS.awake.amberThresholdHours) {
     return {
       state: 'amber',
-      message: "She has been awake a while — a nap may help",
+      message: shouldShowPressureMessages() ? "She has been awake a while — a nap may help" : undefined,
       target: 'normally <2h',
     };
   }

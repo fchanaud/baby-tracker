@@ -130,7 +130,14 @@ function MetricCard({ title, value, state, message }: MetricCardProps) {
   return (
     <div className={`${colors[state]} border rounded-xl p-4`}>
       <p className="text-sm text-gray-400 font-medium mb-1">{title}</p>
-      <p className="text-lg font-bold text-gray-100 leading-tight">{value}</p>
+      <p className="text-lg font-bold text-gray-100 leading-tight">
+        <span>{value.split(' · ')[0]}</span>
+        {value.includes(' · ') && (
+          <span className="text-xs font-normal text-gray-500 ml-1">
+            · {value.split(' · ')[1]}
+          </span>
+        )}
+      </p>
       {message && (
         <p className="text-xs text-gray-300 mt-2 leading-snug">{message}</p>
       )}
