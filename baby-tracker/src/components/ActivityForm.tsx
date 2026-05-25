@@ -293,12 +293,12 @@ export default function ActivityForm({ identity, onLogCreated }: ActivityFormPro
   // Step 2c: Sleep duration
   if (step === 'sleep-duration') {
     const commonDurations = [
-      { label: '15 min', value: 15 },
       { label: '30 min', value: 30 },
       { label: '1 hour', value: 60 },
+      { label: '1.5 hrs', value: 90 },
       { label: '2 hours', value: 120 },
+      { label: '2.5 hrs', value: 150 },
       { label: '3 hours', value: 180 },
-      { label: '4+ hours', value: 240 },
     ];
 
     return (
@@ -324,6 +324,22 @@ export default function ActivityForm({ identity, onLogCreated }: ActivityFormPro
               <span className="text-2xl font-bold">{label}</span>
             </button>
           ))}
+
+          {/* 4+ hours - ask for custom input */}
+          <button
+            onClick={() => {
+              const hours = prompt('How many hours?');
+              if (hours && !isNaN(Number(hours))) {
+                const minutes = Math.round(Number(hours) * 60);
+                if (minutes > 0) {
+                  saveLog({ log_type: 'sleep', duration_minutes: minutes });
+                }
+              }
+            }}
+            className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[100px] flex flex-col items-center justify-center gap-2"
+          >
+            <span className="text-2xl font-bold">4+ hrs</span>
+          </button>
         </div>
       </div>
     );
@@ -356,24 +372,24 @@ export default function ActivityForm({ identity, onLogCreated }: ActivityFormPro
 
           <button
             onClick={() => {
-              setNappyType('poo');
-              saveLog({ log_type: 'nappy', nappy_type: 'poo' });
+              setNappyType('dirty' as any);
+              saveLog({ log_type: 'nappy', nappy_type: 'dirty' as any });
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
             <span className="text-5xl">💩</span>
-            <span className="text-lg font-semibold">Poo</span>
+            <span className="text-lg font-semibold">Dirty</span>
           </button>
 
           <button
             onClick={() => {
-              setNappyType('both');
-              saveLog({ log_type: 'nappy', nappy_type: 'both' });
+              setNappyType('mixed' as any);
+              saveLog({ log_type: 'nappy', nappy_type: 'mixed' as any });
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
             <span className="text-5xl">💦</span>
-            <span className="text-lg font-semibold">Both</span>
+            <span className="text-lg font-semibold">Mixed</span>
           </button>
         </div>
       </div>
