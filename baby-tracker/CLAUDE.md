@@ -1,24 +1,15 @@
 # Baby Tracker — Claude Context
 
-## Stack
-- Next.js 14 (App Router)
-- TypeScript (no JS files)
-- Tailwind CSS
-- Supabase (DB)
-- Vercel (hosting)
-
 ## Product Intent
 Baby tracking app for sleep-deprived parents.  
-Goal: allow logging baby activity, one-handed, mobile-first.  
-Focus: simplicity, low cognitive load, minimal UI.
+**Goal**: One-handed, mobile-first logging with minimal cognitive load.
 
 ## UX Rules
 - One-handed use only
 - Timeline-first dashboard (not form-heavy UI)
 - Minimal UI, no clutter
 - Tap targets ≥ 48px
-- Assume users are sleep-deprived
-- Responsive first (my iphone is 16e)
+- Test on iPhone 16e specifically
 
 ## NHS-Based Health Logic (Non-Diagnostic)
 - Alerts based on NHS newborn guidance patterns
@@ -26,81 +17,36 @@ Focus: simplicity, low cognitive load, minimal UI.
 - Feeding is on-demand; frequent feeding is normal
 - Sleep is NOT used for alerts in newborn phase
 - Weight must be interpreted over time, not in isolation
-- Never provide medical diagnosis, only pattern-based indicators
+- **Never provide medical diagnosis**, only pattern-based indicators
 
 ## Architecture Rules
 - Supabase is the source of truth
-- Claude is used only for:
-  - natural language parsing → structured logs
-  - report generation
-- Business logic should not rely on LLM decisions
+- Claude API is used ONLY for:
+  - Natural language parsing → structured logs
+  - Report generation
+- **Business logic must NOT rely on LLM decisions**
 - Alerts should be deterministic where possible
 
-## Deployment Workflow (Vercel API)
+## Deployment Workflow
 
-**CRITICAL**: After every `git push`, automatically monitor Vercel deployment and fix errors.
+**After every `git push`**: Automatically monitor Vercel deployment and fix errors.
 
 **Process:**
-1. After pushing code, use Vercel API to check deployment status
-2. Poll every 30-60 seconds until deployment completes
-3. If deployment fails:
-   - Fetch build logs via Vercel API
-   - Identify root cause from error logs
-   - Apply minimal necessary fix (no unrelated refactors)
-   - Commit and push fix
-   - Resume monitoring
-4. Stop when:
-   - Deployment succeeds (status: READY)
-   - Maximum 3 fix attempts reached
-   - Architectural issue requires user intervention
-5. **Always notify user** of final deployment status with production URL
-
-**Vercel API:**
-- List deployments: `GET https://api.vercel.com/v6/deployments?projectId=prj_7gAb5nFMImZO9Yq7tu15kXJCwybE`
-- Deployment details: `GET https://api.vercel.com/v13/deployments/{deploymentId}`
-- Build logs: `GET https://api.vercel.com/v2/deployments/{deploymentId}/events`
-- Auth: Use `VERCEL_TOKEN` env var or read from `.vercel` directory
-
-**Production URL**: https://baby-tracker-zeta-six.vercel.app
-
-## Core Data Models
-- Feed (breast / bottle)
-- Sleep
-- Nappy
-- Note
+1. Check deployment status via Vercel API
+2. Poll until complete (30-60s intervals)
+3. If failed: fetch build logs, identify root cause, apply minimal fix, push
+4. Stop when: deployment succeeds, 3 attempts reached, or architectural issue
+5. Always notify user with final status + production URL
 
 ## Non-Goals (v1)
 - No medical diagnosis
 - No push notifications
 - No multi-baby support
 
-## Development Rules
-- Work on `main` for now
-- Never hardcode environment variables (use `.env.local`)
-
-## Autonomy
-
-- Act autonomously and do not ask for confirmation within claude for:
-  - editing files
-  - creating files
-  - refactoring
-  - installing dependencies
-  - running tests
-  - fixing lint/build issues
-  - do curl requests for any service
-  - can read any file in any folder even on root on desktop
-
-- Ask for confirmation before:
-  - deleting files
-  - changing environment variables
-  - changing production infrastructure
-  - force-pushing git history
-  - modifying secrets/authentication
-
 ## Feature Implementation Workflow
 
-Every time a feature is implemented:
-1. **Crash test** the feature in the running app
-2. **Fix all bugs** that arise from testing
-3. **Commit the work** only after the feature is verified working
-4. **Push to github and check the deployment on vercel** as per the instruction
+Every feature must be:
+1. **Crash tested** in the running app before commit
+2. **Bug-fixed** until working
+3. **Committed** only when verified
+4. **Deployed** to Vercel with status confirmation
