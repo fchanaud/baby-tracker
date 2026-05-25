@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { Alert } from '@/lib/types';
 
 interface AlertBannerProps {
@@ -7,16 +8,23 @@ interface AlertBannerProps {
 }
 
 export default function AlertBanner({ alert }: AlertBannerProps) {
-  if (!alert) return null;
+  const [dismissed, setDismissed] = useState(false);
 
-  const bgColor = alert.severity === 'warning' ? 'bg-red-100 border-red-300' : 'bg-yellow-100 border-yellow-300';
-  const textColor = alert.severity === 'warning' ? 'text-red-800' : 'text-yellow-800';
+  if (!alert || dismissed) return null;
+
   const icon = alert.severity === 'warning' ? '⚠️' : 'ℹ️';
 
   return (
-    <div className={`${bgColor} border rounded-xl p-4 flex items-center gap-3`}>
-      <span className="text-2xl">{icon}</span>
-      <p className={`${textColor} font-semibold flex-1`}>{alert.message}</p>
+    <div className="bg-amber-100 border border-amber-300 rounded-xl p-4 flex items-center gap-3">
+      <span className="text-2xl flex-shrink-0">{icon}</span>
+      <p className="text-amber-900 font-semibold flex-1">{alert.message}</p>
+      <button
+        onClick={() => setDismissed(true)}
+        className="text-amber-700 hover:text-amber-900 font-bold text-xl flex-shrink-0 min-h-[48px] min-w-[48px] flex items-center justify-center"
+        aria-label="Dismiss alert"
+      >
+        ×
+      </button>
     </div>
   );
 }

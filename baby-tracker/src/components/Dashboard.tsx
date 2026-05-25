@@ -4,63 +4,61 @@ import { useState, useMemo } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLogs } from '@/hooks/useLogs';
 import { getAlerts, getSideAlternationSuggestion } from '@/lib/alerts';
-import { Log } from '@/lib/types';
 import IdentityPicker from './IdentityPicker';
 import ActivityForm from './ActivityForm';
+import ActivityButtons from './ActivityButtons';
 import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
-import DurationBarTimeline from './DurationBarTimeline';
-import LogDetailModal from './LogDetailModal';
 import RecentLogs from './RecentLogs';
-import ReportsModal from './ReportsModal';
 
 export default function Dashboard() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
   const { logs, refresh } = useLogs();
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
-  const [showReportsModal, setShowReportsModal] = useState(false);
+  const [showActivityForm, setShowActivityForm] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<'feed' | 'sleep' | 'nappy' | 'note' | null>(null);
 
-  // Check if selected date is today
-  const isToday = useMemo(() => {
+  // Filter logs for today (00:00 - now)
+  const todayLogs = useMemo(() => {
     const today = new Date();
-    return (
-      selectedDate.getDate() === today.getDate() &&
-      selectedDate.getMonth() === today.getMonth() &&
-      selectedDate.getFullYear() === today.getFullYear()
-    );
-  }, [selectedDate]);
-
-  // Filter logs by selected date
-  const filteredLogs = useMemo(() => {
-    const dateStart = new Date(selectedDate);
+    const dateStart = new Date(today);
     dateStart.setHours(0, 0, 0, 0);
-    const dateEnd = new Date(selectedDate);
+    const dateEnd = new Date(today);
     dateEnd.setHours(23, 59, 59, 999);
 
     return logs.filter(log => {
       const logDate = new Date(log.logged_at);
       return logDate >= dateStart && logDate <= dateEnd;
     });
-  }, [logs, selectedDate]);
+  }, [logs]);
 
-  // Calculate alerts for selected date (or all logs if today for "no feed" check)
+  // Calculate alerts for today
   const alert = useMemo(() => {
-    return getAlerts(isToday ? logs : filteredLogs, selectedDate);
-  }, [logs, filteredLogs, selectedDate, isToday]);
+    return getAlerts(logs, new Date());
+  }, [logs]);
 
   // Get side alternation suggestion
   const sideAlternation = useMemo(() => {
-    return getSideAlternationSuggestion(logs);
-  }, [logs]);
+    return getSideAlternationSuggestion(todayLogs);
+  }, [todayLogs]);
+
+  const handleActivitySelect = (activity: 'feed' | 'sleep' | 'nappy' | 'note') => {
+    setSelectedActivity(activity);
+    setShowActivityForm(true);
+  };
+
+  const handleLogCreated = () => {
+    refresh();
+    setShowActivityForm(false);
+    setSelectedActivity(null);
+  };
 
   // Show identity picker if not set (after all hooks)
   if (identityLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
           <div className="text-4xl mb-4">👶</div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
     );
@@ -70,84 +68,63 @@ export default function Dashboard() {
     return <IdentityPicker onSelect={setIdentity} />;
   }
 
+  // Show activity form modal
+  if (showActivityForm) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-gray-100">
+        <div className="max-w-2xl mx-auto px-4 py-6">
+          <button
+            onClick={() => {
+              setShowActivityForm(false);
+              setSelectedActivity(null);
+            }}
+            className="text-gray-400 hover:text-gray-200 mb-4 min-h-[48px] flex items-center gap-2"
+          >
+            ← Back to dashboard
+          </button>
+          <ActivityForm identity={identity} onLogCreated={handleLogCreated} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-3 sm:px-4 py-3 sm:py-4 sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-900 text-gray-100 pb-20">
+      {/* Navbar */}
+      <div className="bg-gray-800 border-b border-gray-700 px-4 py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <h1 className="text-xl sm:text-2xl font-bold truncate">Baby Tracker</h1>
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            <a
-              href="/profile"
-              className="text-xs sm:text-sm font-medium text-purple-600 hover:text-purple-700 px-2 sm:px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors whitespace-nowrap min-h-[48px] flex items-center"
-            >
-              👶 <span className="hidden xs:inline ml-1">Profile</span>
-            </a>
-            <button
-              onClick={() => setShowReportsModal(true)}
-              className="text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 px-2 sm:px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap min-h-[48px] flex items-center"
-            >
-              📊 <span className="hidden xs:inline ml-1">Reports</span>
-            </button>
-            <button
-              onClick={() => setIdentity(null)}
-              className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 px-2 min-h-[48px] flex items-center"
-            >
-              Switch
-            </button>
-          </div>
+          <h1 className="text-2xl font-bold">👶 Baby Tracker</h1>
+          <button
+            onClick={() => setIdentity(null)}
+            className="text-sm text-gray-400 hover:text-gray-200 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors min-h-[48px]"
+          >
+            Switch ({identity})
+          </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Activity Form (only show for today) - FIRST COMPONENT */}
-        {isToday && <ActivityForm identity={identity} onLogCreated={refresh} />}
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* Alert Banner (only if threshold breached) */}
+        <AlertBanner alert={alert} />
+
+        {/* Activity Buttons */}
+        <ActivityButtons onActivitySelect={handleActivitySelect} />
 
         {/* Side Alternation Prompt */}
-        {sideAlternation && isToday && (
-          <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-            <p className="text-purple-800 font-semibold text-center">
+        {sideAlternation && (
+          <div className="bg-purple-900 border border-purple-700 rounded-xl p-4">
+            <p className="text-purple-200 font-semibold text-center">
               🤱 {sideAlternation}
             </p>
           </div>
         )}
 
-        {/* Metrics */}
-        <MetricCards logs={filteredLogs} allLogs={logs} selectedDate={selectedDate} isToday={isToday} />
+        {/* Key Metrics - 2x2 Grid */}
+        <MetricCards logs={todayLogs} allLogs={logs} />
 
-        {/* Duration Bar Timeline */}
-        <DurationBarTimeline
-          logs={logs}
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
-          onBarClick={(log) => {
-            setSelectedLog(log);
-          }}
-          onBarLongPress={(log) => {
-            setSelectedLog(log);
-          }}
-        />
-
-        {/* Recent Logs */}
-        <RecentLogs logs={filteredLogs} />
-
-        {/* Detail Modal */}
-        <LogDetailModal
-          log={selectedLog}
-          onClose={() => setSelectedLog(null)}
-        />
-
-        {/* Reports Modal */}
-        <ReportsModal
-          isOpen={showReportsModal}
-          onClose={() => setShowReportsModal(false)}
-        />
-
-        {/* User Info */}
-        <div className="text-center text-sm text-gray-500 pb-4">
-          Logged in as <span className="font-semibold">{identity}</span>
-        </div>
+        {/* Recent Activity Feed */}
+        <RecentLogs logs={todayLogs} />
       </div>
     </div>
   );

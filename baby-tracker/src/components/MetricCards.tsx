@@ -3,116 +3,79 @@
 import type { Log } from '@/lib/types';
 
 interface MetricCardsProps {
-  logs: Log[]; // Logs for selected date
-  allLogs: Log[]; // All logs (for "since feed" and "currently sleeping")
-  selectedDate: Date;
-  isToday: boolean;
+  logs: Log[]; // Logs for selected date (today)
+  allLogs: Log[]; // All logs (for time calculations)
 }
 
-export default function MetricCards({ logs, allLogs, selectedDate, isToday }: MetricCardsProps) {
-  // Feeds
-  const feeds = logs.filter(log =>
+export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
+  // 1. Feeds today
+  const feedsToday = logs.filter(log =>
     log.log_type === 'breastfeed' || log.log_type === 'bottle'
   ).length;
 
-  // Total sleep
+  // 2. Total sleep today (sum of all sleep durations)
   const totalSleepMinutes = logs
     .filter(log => log.log_type === 'sleep')
     .reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
+  const totalSleepHours = Math.floor(totalSleepMinutes / 60);
+  const totalSleepMins = totalSleepMinutes % 60;
 
-  // Nappies (wet or both)
-  const nappies = logs.filter(log =>
-    log.log_type === 'nappy' &&
-    (log.nappy_type === 'wet' || log.nappy_type === 'both')
-  ).length;
+  // 3. Nappies today (all types)
+  const nappiesToday = logs.filter(log => log.log_type === 'nappy').length;
 
-  // For today: show "Since Feed" and "Awake Since" / "Currently Sleeping"
-  // For historical dates: show "Dirty Nappies"
-  let card4Title = 'Since Feed';
-  let card4Value = 'N/A';
-  let card4Subtitle = '';
-  let card4Color = 'bg-amber-50 border-amber-200';
+  // 4. Time awake now (or currently sleeping)
+  let awakeTitle = 'Time Awake';
+  let awakeValue = 'N/A';
+  let awakeColor = 'bg-amber-900 border-amber-700';
 
-  if (isToday) {
-    // Time since last feed (from all logs, not just today)
-    const feedLogs = allLogs.filter(log =>
-      log.log_type === 'breastfeed' || log.log_type === 'bottle'
-    );
-    const lastFeed = feedLogs.length > 0 ? feedLogs[0] : null;
-    const minutesSinceLastFeed = lastFeed
-      ? Math.floor((Date.now() - new Date(lastFeed.logged_at).getTime()) / (1000 * 60))
-      : null;
+  // Check if currently sleeping
+  const sleepLogs = allLogs
+    .filter(log => log.log_type === 'sleep')
+    .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime());
 
-    if (minutesSinceLastFeed !== null) {
-      card4Value = `${Math.floor(minutesSinceLastFeed / 60)}h ${minutesSinceLastFeed % 60}m`;
+  if (sleepLogs.length > 0) {
+    const lastSleep = sleepLogs[0];
+    const sleepStartTime = new Date(lastSleep.logged_at).getTime();
+    const sleepEndTime = sleepStartTime + (lastSleep.duration_minutes || 0) * 60 * 1000;
+    const now = Date.now();
+
+    if (sleepEndTime > now) {
+      // Currently sleeping
+      const minutesAsleep = Math.floor((now - sleepStartTime) / (1000 * 60));
+      awakeTitle = '😴 Sleeping';
+      awakeValue = `${Math.floor(minutesAsleep / 60)}h ${minutesAsleep % 60}m`;
+      awakeColor = 'bg-indigo-900 border-indigo-700';
+    } else {
+      // Awake since last sleep ended
+      const minutesAwake = Math.floor((now - sleepEndTime) / (1000 * 60));
+      awakeValue = `${Math.floor(minutesAwake / 60)}h ${minutesAwake % 60}m`;
     }
-
-    // Check if currently sleeping
-    const sleepLogs = allLogs
-      .filter(log => log.log_type === 'sleep')
-      .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime());
-
-    if (sleepLogs.length > 0) {
-      const lastSleep = sleepLogs[0];
-      const sleepEndTime = new Date(lastSleep.logged_at).getTime() + (lastSleep.duration_minutes || 0) * 60 * 1000;
-      const isCurrentlySleeping = sleepEndTime > Date.now();
-
-      if (isCurrentlySleeping) {
-        const minutesAsleep = Math.floor((Date.now() - new Date(lastSleep.logged_at).getTime()) / (1000 * 60));
-        card4Title = '😴 Sleeping';
-        card4Value = `${Math.floor(minutesAsleep / 60)}h ${minutesAsleep % 60}m`;
-        card4Subtitle = '';
-        card4Color = 'bg-blue-50 border-blue-200';
-      } else {
-        // Awake since last sleep ended
-        const minutesAwake = Math.floor((Date.now() - sleepEndTime) / (1000 * 60));
-        card4Title = 'Awake Since';
-        card4Value = `${Math.floor(minutesAwake / 60)}h ${minutesAwake % 60}m`;
-        card4Subtitle = '';
-        card4Color = 'bg-amber-50 border-amber-200';
-      }
-    }
-  } else {
-    // Historical view: show poo nappies
-    const pooNappies = logs.filter(log =>
-      log.log_type === 'nappy' &&
-      (log.nappy_type === 'poo' || log.nappy_type === 'both')
-    ).length;
-
-    card4Title = 'Poo Nappies';
-    card4Value = pooNappies.toString();
-    card4Subtitle = '';
-    card4Color = 'bg-yellow-50 border-yellow-200';
   }
 
   return (
     <div className="grid grid-cols-2 gap-4">
       <MetricCard
-        title="Feeds"
-        value={feeds.toString()}
-        subtitle=""
-        color="bg-green-50 border-green-200"
+        title="Feeds Today"
+        value={feedsToday.toString()}
+        color="bg-pink-900 border-pink-700"
       />
 
       <MetricCard
         title="Total Sleep"
-        value={`${Math.floor(totalSleepMinutes / 60)}h ${totalSleepMinutes % 60}m`}
-        subtitle=""
-        color="bg-blue-50 border-blue-200"
+        value={totalSleepMinutes > 0 ? `${totalSleepHours}h ${totalSleepMins}m` : '0h'}
+        color="bg-blue-900 border-blue-700"
       />
 
       <MetricCard
-        title="Wet Nappies"
-        value={nappies.toString()}
-        subtitle=""
-        color="bg-gray-50 border-gray-200"
+        title="Nappies Today"
+        value={nappiesToday.toString()}
+        color="bg-yellow-900 border-yellow-700"
       />
 
       <MetricCard
-        title={card4Title}
-        value={card4Value}
-        subtitle={card4Subtitle}
-        color={card4Color}
+        title={awakeTitle}
+        value={awakeValue}
+        color={awakeColor}
       />
     </div>
   );
@@ -121,16 +84,14 @@ export default function MetricCards({ logs, allLogs, selectedDate, isToday }: Me
 interface MetricCardProps {
   title: string;
   value: string;
-  subtitle: string;
   color: string;
 }
 
-function MetricCard({ title, value, subtitle, color }: MetricCardProps) {
+function MetricCard({ title, value, color }: MetricCardProps) {
   return (
     <div className={`${color} border rounded-xl p-4`}>
-      <p className="text-sm text-gray-600 font-medium mb-1">{title}</p>
-      <p className="text-3xl font-bold">{value}</p>
-      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+      <p className="text-sm text-gray-400 font-medium mb-1">{title}</p>
+      <p className="text-3xl font-bold text-gray-100">{value}</p>
     </div>
   );
 }
