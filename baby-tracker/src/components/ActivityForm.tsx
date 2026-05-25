@@ -12,7 +12,7 @@ interface ActivityFormProps {
   initialActivity?: 'feed' | 'sleep' | 'nappy';
 }
 
-type FormStep = 'type' | 'timing' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'saving';
+type FormStep = 'type' | 'timing' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'stool-type' | 'saving';
 
 interface ToastState {
   message: string;
@@ -36,6 +36,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   const [feedType, setFeedType] = useState<'breast' | 'bottle' | null>(null);
   const [side, setSide] = useState<Side | null>(null);
   const [nappyType, setNappyType] = useState<NappyType | null>(null);
+  const [stoolType, setStoolType] = useState<PooConsistency | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -50,6 +51,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     setFeedType(null);
     setSide(null);
     setNappyType(null);
+    setStoolType(null);
     setDuration(null);
     setError(null);
     setCustomTime(null);
@@ -573,23 +575,74 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setNappyType('poo');
-              saveLog({ log_type: 'nappy', nappy_type: 'poo' });
+              setStep('stool-type');
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
             <span className="text-5xl">💩</span>
-            <span className="text-lg font-semibold">Poo</span>
+            <span className="text-lg font-semibold">Dirty</span>
           </button>
 
           <button
             onClick={() => {
               setNappyType('both');
-              saveLog({ log_type: 'nappy', nappy_type: 'both' });
+              setStep('stool-type');
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
             <span className="text-5xl">💦</span>
             <span className="text-lg font-semibold">Both</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2e: Stool type (for dirty or both nappies)
+  if (step === 'stool-type') {
+    return (
+      <div className="space-y-3">
+        <button
+          onClick={() => setStep('nappy-type')}
+          className="text-gray-600 hover:text-gray-900 flex items-center gap-1"
+        >
+          ← Back
+        </button>
+
+        <h2 className="text-lg font-semibold text-gray-900 text-center">Type of stool</h2>
+
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            onClick={() => {
+              setStoolType('normal');
+              saveLog({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'normal' });
+            }}
+            className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
+          >
+            <span className="text-5xl">✅</span>
+            <span className="text-lg font-semibold">Normal</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setStoolType('soft');
+              saveLog({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'soft' });
+            }}
+            className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
+          >
+            <span className="text-5xl">🟡</span>
+            <span className="text-lg font-semibold">Soft</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setStoolType('liquid');
+              saveLog({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'liquid' });
+            }}
+            className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
+          >
+            <span className="text-5xl">💧</span>
+            <span className="text-lg font-semibold">Liquid</span>
           </button>
         </div>
       </div>
