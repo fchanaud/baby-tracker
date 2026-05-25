@@ -11,6 +11,7 @@ import MetricCards from './MetricCards';
 import RecentLogs from './RecentLogs';
 import Navbar from './Navbar';
 import NormalCheckSheet from './NormalCheckSheet';
+import EnvironmentToggle from './EnvironmentToggle';
 
 export default function Dashboard() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
@@ -238,6 +239,9 @@ export default function Dashboard() {
           onClose={() => setNormalCheckAnswer(null)}
         />
       )}
+
+      {/* Environment Toggle (Franklin only) */}
+      <EnvironmentToggle identity={identity} />
     </div>
   );
 }
