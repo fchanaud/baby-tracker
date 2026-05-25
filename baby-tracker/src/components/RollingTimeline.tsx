@@ -212,10 +212,10 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
             onClick={() => setWindowOffset(windowOffset - 1)}
             className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
           >
-            ← Previous 4h
+            ← 4h
           </button>
         ) : (
-          <div className="w-32" />
+          <div className="w-16" />
         )}
 
         <div className="flex flex-col items-center gap-1">
@@ -235,38 +235,38 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
             onClick={() => setWindowOffset(windowOffset + 1)}
             className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
           >
-            Next 4h →
+            4h →
           </button>
         ) : (
-          <div className="w-32" />
+          <div className="w-16" />
         )}
       </div>
 
-      {/* Nappy Summary */}
+      {/* Nappy Summary - Above Timeline */}
       {nappyLogs.length > 0 && (
         <div className="mb-6 bg-yellow-900/20 border border-yellow-700/50 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-3xl">🧷</span>
-            <div>
-              <h4 className="text-lg font-bold text-yellow-200">Nappy Changes</h4>
-              <p className="text-sm text-yellow-300/70">{nappyLogs.length} in this window</p>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-3xl">🧷</span>
+              <div>
+                <h4 className="text-lg font-bold text-yellow-200">Nappy Changes</h4>
+                <p className="text-sm text-yellow-300/70">{nappyLogs.length} in this window</p>
+              </div>
             </div>
           </div>
-
-          {/* Nappy markers on timeline */}
-          <div className="relative h-12 bg-gray-900/50 rounded-lg">
+          <div className="flex flex-wrap gap-2">
             {nappyLogs.map(log => {
-              const logTime = new Date(log.logged_at).getTime();
-              const leftPos = ((logTime - startTime) / (endTime - startTime)) * 100;
+              const time = new Date(log.logged_at).toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit'
+              });
               return (
                 <button
                   key={log.id}
                   onClick={() => onActivityTap(log)}
-                  className="absolute top-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-500 hover:bg-yellow-600 rounded-full flex items-center justify-center text-lg transition-all active:scale-95 shadow-lg"
-                  style={{ left: `${leftPos}%`, transform: 'translate(-50%, -50%)' }}
-                  title={`${new Date(log.logged_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} • ${log.nappy_type}`}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-lg font-semibold text-sm transition-colors active:scale-95 min-h-[48px]"
                 >
-                  🧷
+                  {time} • {log.nappy_type}
                 </button>
               );
             })}
