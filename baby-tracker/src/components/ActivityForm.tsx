@@ -1,24 +1,61 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Identity } from '@/hooks/useIdentity';
 import { LogType, Side, NappyType, PooConsistency } from '@/lib/types';
 
 interface ActivityFormProps {
   identity: Identity;
   onLogCreated: () => void;
+  initialActivity?: 'feed' | 'sleep' | 'nappy' | 'note';
 }
 
 type FormStep = 'type' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'saving';
 
-export default function ActivityForm({ identity, onLogCreated }: ActivityFormProps) {
-  const [step, setStep] = useState<FormStep>('type');
-  const [logType, setLogType] = useState<LogType | null>(null);
+export default function ActivityForm({ identity, onLogCreated, initialActivity }: ActivityFormProps) {
+  // Determine initial step based on initialActivity
+  const getInitialStep = (): FormStep => {
+    if (!initialActivity) return 'type';
+    switch (initialActivity) {
+      case 'feed':
+        return 'feed-type';
+      case 'sleep':
+        return 'sleep-duration';
+      case 'nappy':
+        return 'nappy-type';
+      case 'note':
+        // Handle note immediately
+        return 'type'; // Will be handled in useEffect
+      default:
+        return 'type';
+    }
+  };
+
+  const [step, setStep] = useState<FormStep>(getInitialStep());
+  const [logType, setLogType] = useState<LogType | null>(
+    initialActivity === 'feed' ? 'breastfeed' :
+    initialActivity === 'sleep' ? 'sleep' :
+    initialActivity === 'nappy' ? 'nappy' :
+    initialActivity === 'note' ? 'note' : null
+  );
   const [feedType, setFeedType] = useState<'breast' | 'bottle' | null>(null);
   const [side, setSide] = useState<Side | null>(null);
   const [nappyType, setNappyType] = useState<NappyType | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Handle note activity immediately
+  useEffect(() => {
+    if (initialActivity === 'note') {
+      const note = prompt('Add a note:');
+      if (note && note.trim()) {
+        saveLog({ log_type: 'note', note: note.trim() });
+      } else {
+        // User cancelled, go back
+        onLogCreated();
+      }
+    }
+  }, [initialActivity]);
 
   const resetForm = () => {
     setStep('type');

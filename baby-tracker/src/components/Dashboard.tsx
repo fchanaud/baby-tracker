@@ -57,7 +57,7 @@ export default function Dashboard() {
   }
 
   // Show activity form modal
-  if (showActivityForm) {
+  if (showActivityForm && selectedActivity) {
     return (
       <div className="min-h-screen bg-gray-900 text-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-6">
@@ -70,7 +70,11 @@ export default function Dashboard() {
           >
             ← Back to dashboard
           </button>
-          <ActivityForm identity={identity} onLogCreated={handleLogCreated} />
+          <ActivityForm
+            identity={identity}
+            onLogCreated={handleLogCreated}
+            initialActivity={selectedActivity}
+          />
         </div>
       </div>
     );
