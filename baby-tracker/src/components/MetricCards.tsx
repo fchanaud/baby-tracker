@@ -1,6 +1,15 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { Log } from '@/lib/types';
+import {
+  evaluateFeedsMetric,
+  evaluateNappiesMetric,
+  evaluateSleepMetric,
+  evaluateTimeAwakeMetric,
+  type AlertState,
+} from '@/lib/nhs-thresholds';
+import { useBabyProfile } from '@/hooks/useBabyProfile';
 
 interface MetricCardsProps {
   logs: Log[]; // Logs for selected date (today)
@@ -8,30 +17,48 @@ interface MetricCardsProps {
 }
 
 export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
-  // 1. Feeds today
+  const { profile } = useBabyProfile();
+  const [, forceUpdate] = useState(0);
+
+  // Force re-render every minute for live time awake counter
+  useEffect(() => {
+    const interval = setInterval(() => {
+      forceUpdate(n => n + 1);
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Evaluate all metrics using NHS thresholds
+  const feedsStatus = evaluateFeedsMetric(logs, allLogs);
+  const nappiesStatus = evaluateNappiesMetric(logs, profile?.dateOfBirth);
+  const sleepStatus = evaluateSleepMetric(logs, allLogs, profile?.dateOfBirth);
+  const awakeStatus = evaluateTimeAwakeMetric(allLogs);
+
+  // Calculate display values
   const feedsToday = logs.filter(log =>
     log.log_type === 'breastfeed' || log.log_type === 'bottle'
   ).length;
 
-  // 2. Total sleep today (sum of all sleep durations)
   const totalSleepMinutes = logs
     .filter(log => log.log_type === 'sleep')
     .reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
   const totalSleepHours = Math.floor(totalSleepMinutes / 60);
   const totalSleepMins = totalSleepMinutes % 60;
 
-  // 3. Nappies today (all types)
-  const nappiesToday = logs.filter(log => log.log_type === 'nappy').length;
+  const wetNappiesToday = logs.filter(
+    log => log.log_type === 'nappy' &&
+    (log.nappy_type === 'wet' || log.nappy_type === 'mixed')
+  ).length;
 
-  // 4. Time awake now (or currently sleeping)
-  let awakeTitle = 'Time Awake';
-  let awakeValue = 'N/A';
-  let awakeColor = 'bg-amber-900 border-amber-700';
-
-  // Check if currently sleeping
+  // Time awake calculation
   const sleepLogs = allLogs
     .filter(log => log.log_type === 'sleep')
     .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime());
+
+  let awakeTitle = 'Time Awake';
+  let awakeValue = 'N/A';
+  let isCurrentlySleeping = false;
 
   if (sleepLogs.length > 0) {
     const lastSleep = sleepLogs[0];
@@ -44,7 +71,7 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
       const minutesAsleep = Math.floor((now - sleepStartTime) / (1000 * 60));
       awakeTitle = '😴 Sleeping';
       awakeValue = `${Math.floor(minutesAsleep / 60)}h ${minutesAsleep % 60}m`;
-      awakeColor = 'bg-indigo-900 border-indigo-700';
+      isCurrentlySleeping = true;
     } else {
       // Awake since last sleep ended
       const minutesAwake = Math.floor((now - sleepEndTime) / (1000 * 60));
@@ -56,26 +83,30 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
     <div className="grid grid-cols-2 gap-4">
       <MetricCard
         title="Feeds Today"
-        value={feedsToday.toString()}
-        color="bg-pink-900 border-pink-700"
+        value={`${feedsToday} · ${feedsStatus.target || ''}`}
+        state={feedsStatus.state}
+        message={feedsStatus.message}
       />
 
       <MetricCard
         title="Total Sleep"
-        value={totalSleepMinutes > 0 ? `${totalSleepHours}h ${totalSleepMins}m` : '0h'}
-        color="bg-blue-900 border-blue-700"
+        value={`${totalSleepMinutes > 0 ? `${totalSleepHours}h ${totalSleepMins}m` : '0h'} · ${sleepStatus.target || ''}`}
+        state={sleepStatus.state}
+        message={sleepStatus.message}
       />
 
       <MetricCard
         title="Nappies Today"
-        value={nappiesToday.toString()}
-        color="bg-yellow-900 border-yellow-700"
+        value={`${wetNappiesToday} · ${nappiesStatus.target || ''}`}
+        state={nappiesStatus.state}
+        message={nappiesStatus.message}
       />
 
       <MetricCard
         title={awakeTitle}
-        value={awakeValue}
-        color={awakeColor}
+        value={`${awakeValue}${isCurrentlySleeping ? '' : ` · ${awakeStatus.target || ''}`}`}
+        state={awakeStatus.state}
+        message={awakeStatus.message}
       />
     </div>
   );
@@ -84,14 +115,25 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
 interface MetricCardProps {
   title: string;
   value: string;
-  color: string;
+  state: AlertState;
+  message?: string;
 }
 
-function MetricCard({ title, value, color }: MetricCardProps) {
+function MetricCard({ title, value, state, message }: MetricCardProps) {
+  // Color based on state
+  const colors = {
+    green: 'bg-green-900 border-green-700',
+    amber: 'bg-amber-900 border-amber-700',
+    red: 'bg-red-900 border-red-700',
+  };
+
   return (
-    <div className={`${color} border rounded-xl p-4`}>
+    <div className={`${colors[state]} border rounded-xl p-4`}>
       <p className="text-sm text-gray-400 font-medium mb-1">{title}</p>
-      <p className="text-3xl font-bold text-gray-100">{value}</p>
+      <p className="text-lg font-bold text-gray-100 leading-tight">{value}</p>
+      {message && (
+        <p className="text-xs text-gray-300 mt-2 leading-snug">{message}</p>
+      )}
     </div>
   );
 }

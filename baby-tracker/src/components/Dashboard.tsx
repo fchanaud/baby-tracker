@@ -1,19 +1,39 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLogs } from '@/hooks/useLogs';
+import { useBabyProfile } from '@/hooks/useBabyProfile';
+import {
+  evaluateFeedsMetric,
+  evaluateNappiesMetric,
+  evaluateSleepMetric,
+  evaluateTimeAwakeMetric,
+  getMostUrgentAlert,
+} from '@/lib/nhs-thresholds';
 import IdentityPicker from './IdentityPicker';
 import ActivityForm from './ActivityForm';
 import ActivityButtons from './ActivityButtons';
+import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
 import RecentLogs from './RecentLogs';
 
 export default function Dashboard() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
   const { logs, refresh } = useLogs();
+  const { profile } = useBabyProfile();
   const [showActivityForm, setShowActivityForm] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<'feed' | 'sleep' | 'nappy' | 'note' | null>(null);
+  const [, forceUpdate] = useState(0);
+
+  // Force re-render every 60 seconds for alert re-evaluation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      forceUpdate(n => n + 1);
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Filter logs for today (00:00 - now)
   const todayLogs = useMemo(() => {
@@ -28,6 +48,18 @@ export default function Dashboard() {
       return logDate >= dateStart && logDate <= dateEnd;
     });
   }, [logs]);
+
+  // Evaluate all metrics to get most urgent alert
+  const urgentAlert = useMemo(() => {
+    const feedsStatus = evaluateFeedsMetric(todayLogs, logs);
+    const nappiesStatus = evaluateNappiesMetric(todayLogs, profile?.dateOfBirth);
+    const sleepStatus = evaluateSleepMetric(todayLogs, logs, profile?.dateOfBirth);
+    const awakeStatus = evaluateTimeAwakeMetric(logs);
+
+    const message = getMostUrgentAlert(feedsStatus, nappiesStatus, sleepStatus, awakeStatus);
+
+    return message ? { type: 'urgent' as const, message, severity: 'warning' as const } : null;
+  }, [todayLogs, logs, profile?.dateOfBirth]);
 
   const handleActivitySelect = (activity: 'feed' | 'sleep' | 'nappy' | 'note') => {
     setSelectedActivity(activity);
@@ -97,6 +129,9 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* Alert Banner (only when urgent red alerts) */}
+        <AlertBanner alert={urgentAlert} />
+
         {/* Activity Buttons */}
         <ActivityButtons onActivitySelect={handleActivitySelect} />
 
