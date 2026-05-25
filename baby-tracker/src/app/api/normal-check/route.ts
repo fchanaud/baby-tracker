@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 - Hours since last feed: ${hoursSinceLastFeed.toFixed(1)}h (NHS max gap: ${NHS_THRESHOLDS.feeds.maxGapHours}h)`;
 
     const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-20250514',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 256,
       system: `You are a supportive baby tracking assistant. Answer "Is everything normal?" based on today's data and NHS newborn guidance. Be warm, reassuring, and specific. Keep it under 3 sentences. Never diagnose medical issues.`,
       messages: [

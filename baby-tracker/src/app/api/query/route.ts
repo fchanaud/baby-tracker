@@ -183,8 +183,8 @@ ${JSON.stringify(optimizedAllLogs)}`;
     // Determine if this is a simple query (optimization #6)
     const isSimpleQuery = /^(how many|count|total|number of|when|what time)/i.test(question);
     const model = isSimpleQuery
-      ? 'claude-haiku-4-20250514'
-      : 'claude-sonnet-4-20250514';
+      ? 'claude-haiku-4-5-20251001'
+      : 'claude-sonnet-4-6';
 
     // Use prompt caching (optimization #1)
     // Note: Prompt caching available in SDK 0.30+

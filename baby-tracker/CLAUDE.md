@@ -50,3 +50,39 @@ Every feature must be:
 2. **Bug-fixed** until working
 3. **Committed** only when verified
 4. **Deployed** to Vercel with status confirmation
+
+## Feedback workflow
+
+1. Franklin writes all comments and change requests in FEEDBACK.md
+   at the project root — written naturally, as spoken or dictated,
+   no need to structure it.
+
+2. When told "action FEEDBACK.md":
+   - Read FEEDBACK.md in full
+   - Do ask clarification questions if you need precisions on anything and provide answer for each that makes the more sense to you and ask for my input
+   - Rewrite the contents into a structured Claude Code prompt 
+     using the established format: goal, context, success criteria, 
+     constraints
+   - Show the rewritten prompt to Franklin and wait for approval 
+     before doing any work
+   - If Franklin says something like "looks good" or "go ahead", proceed
+   - If Franklin requests changes to the rewrite, update and 
+     confirm again before acting
+
+3. Work through every item in the approved prompt sequentially.
+   Confirm what was done and the success criteria met before 
+   moving to the next item.
+
+4. Before marking work as complete:
+   - Test each feature in the running app (local dev server)
+   - Verify all functionality works as expected
+   - Fix any bugs discovered during testing
+   - Do NOT proceed until all features are verified working
+
+5. When ALL items are complete, tested, and verified:
+   - Clear FEEDBACK.md entirely
+   - Confirm to Franklin that FEEDBACK.md has been cleared
+
+6. If any item cannot be completed or a test fails: stop, report 
+   clearly what succeeded and what remains, and do NOT clear 
+   FEEDBACK.md until everything is resolved.
