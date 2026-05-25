@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Identity } from '@/hooks/useIdentity';
 import { LogType, Side, NappyType, PooConsistency } from '@/lib/types';
+import Toast from './Toast';
 
 interface ActivityFormProps {
   identity: Identity;
@@ -11,6 +12,11 @@ interface ActivityFormProps {
 }
 
 type FormStep = 'type' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'saving';
+
+interface ToastState {
+  message: string;
+  type: 'success' | 'error';
+}
 
 export default function ActivityForm({ identity, onLogCreated, initialActivity }: ActivityFormProps) {
   // Determine initial step based on initialActivity
@@ -39,7 +45,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
   const [nappyType, setNappyType] = useState<NappyType | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
 
 
   const resetForm = () => {
@@ -73,13 +79,13 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
       if (!response.ok) {
         const errorMsg = result.error || 'Failed to save';
         setError(errorMsg);
-        alert(`❌ Error: ${errorMsg}`);
+        setToast({ message: errorMsg, type: 'error' });
         setStep('type');
         return;
       }
 
       // Success - format message based on log type
-      let message = '✅ Logged: ';
+      let message = 'Logged: ';
       switch (logData.log_type) {
         case 'breastfeed':
           message += `Breastfeed - ${logData.side} - ${logData.duration_minutes}min`;
@@ -100,8 +106,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
           break;
       }
 
-      setSuccessMessage(message);
-      alert(message);
+      setToast({ message, type: 'success' });
 
       // Success - notify and reset
       onLogCreated();
@@ -110,7 +115,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
       console.error('Save error:', err);
       const errorMsg = 'Failed to save. Try again.';
       setError(errorMsg);
-      alert(`❌ Error: ${errorMsg}`);
+      setToast({ message: errorMsg, type: 'error' });
       setStep('type');
     }
   };
@@ -457,24 +462,24 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
 
           <button
             onClick={() => {
-              setNappyType('dirty' as any);
-              saveLog({ log_type: 'nappy', nappy_type: 'dirty' as any });
+              setNappyType('poo');
+              saveLog({ log_type: 'nappy', nappy_type: 'poo' });
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
             <span className="text-5xl">💩</span>
-            <span className="text-lg font-semibold">Dirty</span>
+            <span className="text-lg font-semibold">Poo</span>
           </button>
 
           <button
             onClick={() => {
-              setNappyType('mixed' as any);
-              saveLog({ log_type: 'nappy', nappy_type: 'mixed' as any });
+              setNappyType('both');
+              saveLog({ log_type: 'nappy', nappy_type: 'both' });
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
             <span className="text-5xl">💦</span>
-            <span className="text-lg font-semibold">Mixed</span>
+            <span className="text-lg font-semibold">Both</span>
           </button>
         </div>
       </div>
@@ -484,12 +489,31 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
   // Saving state
   if (step === 'saving') {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 text-center">
-        <div className="text-6xl mb-4 animate-pulse">⏳</div>
-        <p className="text-blue-900 font-semibold text-lg">Saving...</p>
-      </div>
+      <>
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 text-center">
+          <div className="text-6xl mb-4 animate-pulse">⏳</div>
+          <p className="text-blue-900 font-semibold text-lg">Saving...</p>
+        </div>
+      </>
     );
   }
 
-  return null;
+  return (
+    <>
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </>
+  );
 }

@@ -6,7 +6,7 @@ import type { Log } from '@/lib/types';
 
 export function useLogs() {
   const { data, error, mutate } = useSWR<Log[]>('/api/logs', fetchLogs, {
-    refreshInterval: 10000, // Refresh every 10 seconds
+    refreshInterval: 60000, // Refresh every 60 seconds
     revalidateOnFocus: true,
   });
 

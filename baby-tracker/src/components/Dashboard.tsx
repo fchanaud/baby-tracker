@@ -24,16 +24,6 @@ export default function Dashboard() {
   const { profile } = useBabyProfile();
   const [showActivityForm, setShowActivityForm] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<'feed' | 'sleep' | 'nappy' | null>(null);
-  const [, forceUpdate] = useState(0);
-
-  // Force re-render every 60 seconds for alert re-evaluation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      forceUpdate(n => n + 1);
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Filter logs for today (00:00 - now)
   const todayLogs = useMemo(() => {

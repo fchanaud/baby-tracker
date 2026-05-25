@@ -48,7 +48,7 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
 
   const wetNappiesToday = logs.filter(
     log => log.log_type === 'nappy' &&
-    (log.nappy_type === 'wet' || log.nappy_type === 'mixed')
+    (log.nappy_type === 'wet' || log.nappy_type === 'both')
   ).length;
 
   // Time awake calculation

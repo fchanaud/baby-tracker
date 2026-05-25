@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
       .from('logs')
       .select('*')
       .gte('logged_at', thirtyDaysAgo.toISOString())
-      .order('logged_at', { ascending: false });
+      .order('logged_at', { ascending: false })
+      .limit(500);
 
     if (error) {
       console.error('Supabase query error:', error);

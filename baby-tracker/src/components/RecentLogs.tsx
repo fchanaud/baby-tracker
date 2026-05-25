@@ -1,16 +1,20 @@
 'use client';
 
+import { memo, useMemo } from 'react';
 import type { Log } from '@/lib/types';
 
 interface RecentLogsProps {
   logs: Log[];
 }
 
-export default function RecentLogs({ logs }: RecentLogsProps) {
-  // Sort by logged_at descending and take first 8
-  const recentLogs = logs
-    .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
-    .slice(0, 8);
+function RecentLogs({ logs }: RecentLogsProps) {
+  // Sort by logged_at descending and take first 8 - memoized
+  const recentLogs = useMemo(() =>
+    logs
+      .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
+      .slice(0, 8),
+    [logs]
+  );
 
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
@@ -29,7 +33,9 @@ export default function RecentLogs({ logs }: RecentLogsProps) {
   );
 }
 
-function LogEntry({ log }: { log: Log }) {
+export default memo(RecentLogs);
+
+const LogEntry = memo(function LogEntry({ log }: { log: Log }) {
   const loggedAt = new Date(log.logged_at);
   const now = Date.now();
   const diffMs = now - loggedAt.getTime();
@@ -96,4 +102,4 @@ function LogEntry({ log }: { log: Log }) {
       </div>
     </div>
   );
-}
+});

@@ -43,7 +43,7 @@ export interface ParsedLog {
 }
 
 // Alert types
-export type AlertType = 'no_feed' | 'short_feed' | 'low_nappy_count' | 'side_imbalance';
+export type AlertType = 'no_feed' | 'short_feed' | 'low_nappy_count' | 'side_imbalance' | 'urgent';
 export type AlertSeverity = 'warning' | 'info';
 
 export interface Alert {
