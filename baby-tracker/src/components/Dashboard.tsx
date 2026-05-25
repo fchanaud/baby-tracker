@@ -3,11 +3,10 @@
 import { useState, useMemo } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLogs } from '@/hooks/useLogs';
-import { getAlerts, getSideAlternationSuggestion } from '@/lib/alerts';
+import { getSideAlternationSuggestion } from '@/lib/alerts';
 import IdentityPicker from './IdentityPicker';
 import ActivityForm from './ActivityForm';
 import ActivityButtons from './ActivityButtons';
-import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
 import RecentLogs from './RecentLogs';
 
@@ -29,11 +28,6 @@ export default function Dashboard() {
       const logDate = new Date(log.logged_at);
       return logDate >= dateStart && logDate <= dateEnd;
     });
-  }, [logs]);
-
-  // Calculate alerts for today
-  const alert = useMemo(() => {
-    return getAlerts(logs, new Date());
   }, [logs]);
 
   // Get side alternation suggestion
@@ -105,9 +99,6 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Alert Banner (only if threshold breached) */}
-        <AlertBanner alert={alert} />
-
         {/* Activity Buttons */}
         <ActivityButtons onActivitySelect={handleActivitySelect} />
 
