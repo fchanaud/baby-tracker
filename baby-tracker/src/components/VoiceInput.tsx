@@ -15,7 +15,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
   const [error, setError] = useState<string | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [pendingText, setPendingText] = useState<string | null>(null); // Store text waiting for clarification
+  const [pendingText, setPendingText] = useState<string | null>(null); // Store text waiting for user to process
   const [pendingLog, setPendingLog] = useState<any>(null); // Store partial log
   const [clarificationType, setClarificationType] = useState<'side' | 'nappy_type' | 'poo_consistency' | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -59,6 +59,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
       setError(null);
       setTranscript('');
       setValidationMessage(null);
+      setPendingText(null);
 
       // Safety timeout: auto-stop after 15 seconds
       timeoutRef.current = setTimeout(() => {
@@ -79,13 +80,9 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         timeoutRef.current = null;
       }
 
-      // If we're waiting for clarification, handle it
-      if (clarificationType && pendingLog) {
-        await handleClarificationResponse(text);
-      } else {
-        // Parse and save immediately (no confirmation)
-        await parseAndSave(text);
-      }
+      // Store transcript but don't process yet - wait for user to tap again
+      setPendingText(text);
+      setValidationMessage(`📝 Recorded: "${text}"\nTap again to process`);
     };
 
     recognition.onerror = (event: any) => {
@@ -127,12 +124,31 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
     }
   };
 
-  const handleMicrophoneClick = () => {
+  const handleMicrophoneClick = async () => {
+    // If currently processing, do nothing
+    if (isProcessing) return;
+
+    // If listening, stop recording
     if (isListening) {
       stopListening();
-    } else {
-      startListening();
+      return;
     }
+
+    // If we have pending text from a previous recording, process it
+    if (pendingText && !clarificationType) {
+      await parseAndSave(pendingText);
+      setPendingText(null);
+      return;
+    }
+
+    // If we're waiting for clarification response, start listening for the answer
+    if (clarificationType && pendingLog) {
+      startListening();
+      return;
+    }
+
+    // Otherwise, start a new recording
+    startListening();
   };
 
   const handleClarificationResponse = async (responseText: string) => {
@@ -149,6 +165,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
 
       if (!side) {
         setError('❌ Please say "left", "right", or "both"');
+        setPendingText(null);
         return;
       }
       updatedLog.side = side;
@@ -161,21 +178,24 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         // Ask for consistency
         setPendingLog(updatedLog);
         setClarificationType('poo_consistency');
-        setValidationMessage('💩 What consistency? Liquid, normal, or soft?');
+        setValidationMessage('💩 What consistency? Liquid, normal, or soft?\nTap to answer');
         setError(null);
+        setPendingText(null);
         return;
       } else if (lower.includes('both') || (lower.includes('wet') && lower.includes('poo'))) {
         nappy_type = 'both';
         // Ask for consistency
         setPendingLog(updatedLog);
         setClarificationType('poo_consistency');
-        setValidationMessage('💩 What consistency? Liquid, normal, or soft?');
+        setValidationMessage('💩 What consistency? Liquid, normal, or soft?\nTap to answer');
         setError(null);
+        setPendingText(null);
         return;
       }
 
       if (!nappy_type) {
         setError('❌ Please say "wet only", "poo only", or "both"');
+        setPendingText(null);
         return;
       }
       updatedLog.nappy_type = nappy_type;
@@ -187,6 +207,7 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
 
       if (!consistency) {
         setError('❌ Please say "liquid", "normal", or "soft"');
+        setPendingText(null);
         return;
       }
       updatedLog.poo_consistency = consistency;
@@ -226,11 +247,12 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
       if (result.needsClarification) {
         setPendingLog(result.partialLog);
         setClarificationType(result.needsClarification);
+        setPendingText(null); // Clear pending text since we're in clarification mode
 
         if (result.needsClarification === 'side') {
-          setValidationMessage('🤱 Which side? Say "left", "right", or "both"');
+          setValidationMessage('🤱 Which side? Say "left", "right", or "both"\nTap to answer');
         } else if (result.needsClarification === 'nappy_type') {
-          setValidationMessage('💩 What type? Say "wet only", "poo only", or "both"');
+          setValidationMessage('💩 What type? Say "wet only", "poo only", or "both"\nTap to answer');
         }
 
         setError(null);
@@ -274,7 +296,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
         setValidationMessage(`✓ Logged: "${text}"`);
       }
 
-      // Success - notify parent to refresh
+      // Success - clear pending text and notify parent to refresh
+      setPendingText(null);
       onLogCreated();
       setIsProcessing(false);
     } catch (error) {
@@ -314,7 +337,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
       console.log('✅ Successfully logged:', result.log);
       setValidationMessage(`✓ Logged successfully`);
 
-      // Success - notify parent to refresh
+      // Success - clear pending text and notify parent to refresh
+      setPendingText(null);
       onLogCreated();
       setIsProcessing(false);
     } catch (error) {
@@ -359,6 +383,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
               ? 'Processing...'
               : isListening
               ? 'Tap to stop'
+              : pendingText
+              ? 'Tap to process'
               : clarificationType
               ? 'Tap to answer'
               : 'Tap to speak'}

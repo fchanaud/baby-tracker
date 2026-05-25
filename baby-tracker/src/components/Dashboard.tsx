@@ -73,25 +73,25 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-10">
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-4 py-3 sm:py-4 sticky top-0 z-10">
         <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold">Baby Tracker</h1>
-          <div className="flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold truncate">Baby Tracker</h1>
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <a
               href="/profile"
-              className="text-sm font-medium text-purple-600 hover:text-purple-700 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors"
+              className="text-xs sm:text-sm font-medium text-purple-600 hover:text-purple-700 px-2 sm:px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors whitespace-nowrap min-h-[48px] flex items-center"
             >
-              👶 Profile
+              👶 <span className="hidden xs:inline ml-1">Profile</span>
             </a>
             <button
               onClick={() => setShowReportsModal(true)}
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
+              className="text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 px-2 sm:px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap min-h-[48px] flex items-center"
             >
-              📊 Reports
+              📊 <span className="hidden xs:inline ml-1">Reports</span>
             </button>
             <button
               onClick={() => setIdentity(null)}
-              className="text-sm text-gray-600 hover:text-gray-900 px-2"
+              className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 px-2 min-h-[48px] flex items-center"
             >
               Switch
             </button>
@@ -100,9 +100,9 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Alert Banner */}
-        {alert && <AlertBanner alert={alert} />}
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Voice Input (only show for today) - FIRST COMPONENT */}
+        {isToday && <VoiceInput identity={identity} onLogCreated={refresh} />}
 
         {/* Side Alternation Prompt */}
         {sideAlternation && isToday && (
@@ -112,9 +112,6 @@ export default function Dashboard() {
             </p>
           </div>
         )}
-
-        {/* Voice Input (only show for today) */}
-        {isToday && <VoiceInput identity={identity} onLogCreated={refresh} />}
 
         {/* Metrics */}
         <MetricCards logs={filteredLogs} allLogs={logs} selectedDate={selectedDate} isToday={isToday} />

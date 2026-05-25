@@ -18,6 +18,7 @@ Focus: simplicity, low cognitive load, minimal UI.
 - Minimal UI, no clutter
 - Tap targets ≥ 48px
 - Assume users are sleep-deprived
+- Responsive first (my iphone is 16e)
 
 ## NHS-Based Health Logic (Non-Diagnostic)
 - Alerts based on NHS newborn guidance patterns
@@ -102,3 +103,4 @@ Every time a feature is implemented:
 1. **Crash test** the feature in the running app
 2. **Fix all bugs** that arise from testing
 3. **Commit the work** only after the feature is verified working
+4. **Push to github and check the deployment on vercel** as per the instruction

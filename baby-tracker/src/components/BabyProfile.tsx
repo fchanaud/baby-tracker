@@ -48,12 +48,12 @@ export default function BabyProfile() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold">👶 Baby Profile</h1>
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-4 py-3 sm:py-4 sticky top-0 z-10">
+        <div className="flex items-center justify-between max-w-2xl mx-auto gap-2">
+          <h1 className="text-lg sm:text-2xl font-bold truncate">👶 Baby Profile</h1>
           <a
             href="/"
-            className="text-sm text-gray-600 hover:text-gray-900"
+            className="text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap min-h-[48px] flex items-center px-2"
           >
             ← Dashboard
           </a>
@@ -61,7 +61,7 @@ export default function BabyProfile() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Profile Card */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
           {/* Name */}
@@ -84,10 +84,10 @@ export default function BabyProfile() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Sex
             </label>
-            <div className="flex gap-4">
+            <div className="flex gap-3 sm:gap-4">
               <button
                 onClick={() => setSex('female')}
-                className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                className={`flex-1 px-3 sm:px-4 py-3 rounded-lg border-2 font-medium transition-all min-h-[48px] ${
                   sex === 'female'
                     ? 'border-pink-500 bg-pink-50 text-pink-700'
                     : 'border-gray-300 text-gray-600 hover:border-pink-300'
@@ -97,7 +97,7 @@ export default function BabyProfile() {
               </button>
               <button
                 onClick={() => setSex('male')}
-                className={`flex-1 px-4 py-3 rounded-lg border-2 font-medium transition-all ${
+                className={`flex-1 px-3 sm:px-4 py-3 rounded-lg border-2 font-medium transition-all min-h-[48px] ${
                   sex === 'male'
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-gray-300 text-gray-600 hover:border-blue-300'
@@ -118,7 +118,8 @@ export default function BabyProfile() {
               type="date"
               value={dateOfBirth}
               onChange={(e) => setDateOfBirth(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg"
+              className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg max-w-full"
+              style={{ maxWidth: '100%' }}
             />
           </div>
 
@@ -141,7 +142,7 @@ export default function BabyProfile() {
           {/* Save Button */}
           <button
             onClick={handleSave}
-            className="w-full px-6 py-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 active:scale-95 transition-all"
+            className="w-full px-6 py-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 active:scale-95 transition-all min-h-[48px]"
           >
             Save Profile
           </button>
@@ -173,24 +174,26 @@ export default function BabyProfile() {
           <div className="bg-white border border-gray-200 rounded-xl p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-3">Summary</h2>
             <div className="space-y-2 text-gray-700">
-              <p>
+              <p className="break-words">
                 <span className="font-semibold">Name:</span> {name}
               </p>
               {sex && (
-                <p>
+                <p className="break-words">
                   <span className="font-semibold">Sex:</span> {sex === 'female' ? 'Female' : 'Male'}
                 </p>
               )}
-              <p className="break-words">
-                <span className="font-semibold">Born:</span>{' '}
-                {new Date(dateOfBirth).toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
+              <p className="break-words overflow-wrap-anywhere">
+                <span className="font-semibold block sm:inline">Born:</span>{' '}
+                <span className="block sm:inline">
+                  {new Date(dateOfBirth).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })}
+                </span>
               </p>
               {currentWeight && (
-                <p>
+                <p className="break-words">
                   <span className="font-semibold">Weight:</span> {currentWeight} kg
                 </p>
               )}

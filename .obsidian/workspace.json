@@ -205,7 +205,7 @@
               },
               "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠂ Summarize root markdown files"
+              "title": "Terminal: ⠂ Explore application context window"
             }
           },
           {
@@ -228,7 +228,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 708.5
+    "width": 493.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -244,18 +244,18 @@
   },
   "active": "3a4404d61509c4b2",
   "lastOpenFiles": [
+    "baby-tracker/CLAUDE.md",
+    "CLAUDE.md",
     "baby-tracker/supabase/migrations/add_poo_consistency.sql",
     "baby-tracker/supabase/migrations",
     "baby-tracker/src/app/api/logs/route.ts",
     "baby-tracker/src/app/api/logs",
-    "baby-tracker/CLAUDE.md",
     "baby-tracker/src/components/DurationBar.tsx.tmp.85015.21cfd89c9f6e",
     "baby-tracker/src/hooks/useBabyProfile.ts",
     "baby-tracker/src/components/BabyProfile.tsx",
     "baby-tracker/src/app/profile/page.tsx",
     "baby-tracker/src/app/profile",
     "baby-tracker/node_modules/playwright/node_modules/fsevents/build/config.gypi",
-    "baby-tracker/node_modules/playwright/node_modules/fsevents/build",
     "baby-tracker/node_modules/playwright-core/README.md",
     "baby-tracker/node_modules/playwright/README.md",
     "baby-tracker/node_modules/@tybys/wasm-util/README.md",
