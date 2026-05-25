@@ -21,11 +21,15 @@ export async function POST(request: NextRequest) {
       duration_minutes: duration_minutes ?? null,
       amount_ml: amount_ml ?? null,
       nappy_type: nappy_type ?? null,
-      poo_consistency: poo_consistency ?? null,
       note: note ?? null,
       logged_at: logged_at ?? new Date().toISOString(),
       needs_review: false,
     };
+
+    // Add poo_consistency if column exists (after migration)
+    if (poo_consistency) {
+      (logEntry as any).poo_consistency = poo_consistency;
+    }
 
     const { data, error } = await supabase
       .from('logs')

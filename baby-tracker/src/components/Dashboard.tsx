@@ -6,7 +6,7 @@ import { useLogs } from '@/hooks/useLogs';
 import { getAlerts, getSideAlternationSuggestion } from '@/lib/alerts';
 import { Log } from '@/lib/types';
 import IdentityPicker from './IdentityPicker';
-import VoiceInput from './VoiceInput';
+import ActivityForm from './ActivityForm';
 import AlertBanner from './AlertBanner';
 import MetricCards from './MetricCards';
 import DurationBarTimeline from './DurationBarTimeline';
@@ -101,8 +101,8 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Voice Input (only show for today) - FIRST COMPONENT */}
-        {isToday && <VoiceInput identity={identity} onLogCreated={refresh} />}
+        {/* Activity Form (only show for today) - FIRST COMPONENT */}
+        {isToday && <ActivityForm identity={identity} onLogCreated={refresh} />}
 
         {/* Side Alternation Prompt */}
         {sideAlternation && isToday && (
