@@ -267,7 +267,7 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
       )}
 
       {/* Timeline Container */}
-      <div className="relative h-[400px] bg-gray-900 rounded-xl overflow-hidden">
+      <div className="relative h-[600px] bg-gray-900 rounded-xl overflow-hidden">
         {/* Main timeline area */}
         <div className="absolute inset-4 bottom-16">
           {/* Vertical grid lines at each hour */}
