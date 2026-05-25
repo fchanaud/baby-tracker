@@ -20,6 +20,8 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
   const [clarificationType, setClarificationType] = useState<'side' | 'nappy_type' | 'poo_consistency' | null>(null);
   const recognitionRef = useRef<any>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clarificationTypeRef = useRef<'side' | 'nappy_type' | 'poo_consistency' | null>(null);
+  const pendingLogRef = useRef<any>(null);
 
   useEffect(() => {
     // Check if Web Speech API is supported
@@ -38,6 +40,12 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
       }
     };
   }, []);
+
+  // Sync refs with state for use in closures
+  useEffect(() => {
+    clarificationTypeRef.current = clarificationType;
+    pendingLogRef.current = pendingLog;
+  }, [clarificationType, pendingLog]);
 
   const startListening = () => {
     if (!isSupported) {
@@ -74,6 +82,10 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
       const text = event.results[0][0].transcript;
       setTranscript(text);
 
+      console.log('🎤 Voice recorded:', text);
+      console.log('Current clarificationType:', clarificationTypeRef.current);
+      console.log('Current pendingLog:', pendingLogRef.current ? 'exists' : 'null');
+
       // Clear timeout since we got a result
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -82,7 +94,16 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
 
       // Store transcript but don't process yet - wait for user to tap again
       setPendingText(text);
-      setValidationMessage(`📝 Recorded: "${text}"\nTap again to process`);
+
+      // Different message based on whether we're in clarification mode
+      // Use refs to get current values, not closure values
+      if (clarificationTypeRef.current && pendingLogRef.current) {
+        console.log('✅ In clarification mode - showing confirm message');
+        setValidationMessage(`📝 Recorded: "${text}"\nTap again to confirm`);
+      } else {
+        console.log('✅ Normal mode - showing process message');
+        setValidationMessage(`📝 Recorded: "${text}"\nTap again to process`);
+      }
     };
 
     recognition.onerror = (event: any) => {
@@ -125,29 +146,45 @@ export default function VoiceInput({ identity, onLogCreated }: VoiceInputProps) 
   };
 
   const handleMicrophoneClick = async () => {
+    console.log('🔘 Microphone clicked');
+    console.log('State:', { isProcessing, isListening, hasPendingText: !!pendingText, clarificationType, hasPendingLog: !!pendingLog });
+
     // If currently processing, do nothing
-    if (isProcessing) return;
+    if (isProcessing) {
+      console.log('⏸️ Already processing, ignoring click');
+      return;
+    }
 
     // If listening, stop recording
     if (isListening) {
+      console.log('⏹️ Stopping recording');
       stopListening();
       return;
     }
 
-    // If we have pending text from a previous recording, process it
-    if (pendingText && !clarificationType) {
-      await parseAndSave(pendingText);
-      setPendingText(null);
+    // If we're waiting for clarification response, the pending text should be processed as clarification
+    if (clarificationType && pendingLog && pendingText) {
+      console.log('✅ Processing clarification response:', pendingText);
+      await handleClarificationResponse(pendingText);
       return;
     }
 
-    // If we're waiting for clarification response, start listening for the answer
-    if (clarificationType && pendingLog) {
+    // If we're waiting for clarification but no pending text yet, start listening for the answer
+    if (clarificationType && pendingLog && !pendingText) {
+      console.log('🎙️ Starting recording for clarification answer');
       startListening();
       return;
     }
 
+    // If we have pending text from initial recording, process it
+    if (pendingText && !clarificationType) {
+      console.log('📤 Processing initial recording:', pendingText);
+      await parseAndSave(pendingText);
+      return;
+    }
+
     // Otherwise, start a new recording
+    console.log('🎙️ Starting new recording');
     startListening();
   };
 
