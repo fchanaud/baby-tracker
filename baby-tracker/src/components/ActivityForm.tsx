@@ -43,6 +43,7 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
   const [nappyType, setNappyType] = useState<NappyType | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Handle note activity immediately
   useEffect(() => {
@@ -86,17 +87,46 @@ export default function ActivityForm({ identity, onLogCreated, initialActivity }
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || 'Failed to save');
+        const errorMsg = result.error || 'Failed to save';
+        setError(errorMsg);
+        alert(`❌ Error: ${errorMsg}`);
         setStep('type');
         return;
       }
+
+      // Success - format message based on log type
+      let message = '✅ Logged: ';
+      switch (logData.log_type) {
+        case 'breastfeed':
+          message += `Breastfeed - ${logData.side} - ${logData.duration_minutes}min`;
+          break;
+        case 'bottle':
+          message += `Bottle - ${logData.amount_ml}ml`;
+          break;
+        case 'sleep':
+          const hours = Math.floor(logData.duration_minutes / 60);
+          const mins = logData.duration_minutes % 60;
+          message += hours > 0 ? `Sleep - ${hours}h ${mins}m` : `Sleep - ${mins}m`;
+          break;
+        case 'nappy':
+          message += `Nappy - ${logData.nappy_type}`;
+          break;
+        case 'note':
+          message += `Note - ${logData.note}`;
+          break;
+      }
+
+      setSuccessMessage(message);
+      alert(message);
 
       // Success - notify and reset
       onLogCreated();
       resetForm();
     } catch (err) {
       console.error('Save error:', err);
-      setError('Failed to save. Try again.');
+      const errorMsg = 'Failed to save. Try again.';
+      setError(errorMsg);
+      alert(`❌ Error: ${errorMsg}`);
       setStep('type');
     }
   };
