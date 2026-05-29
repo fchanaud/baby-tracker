@@ -84,7 +84,7 @@ const LogEntry = memo(function LogEntry({ log }: { log: Log }) {
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors">
+    <div className="flex items-center gap-3 p-3 bg-gray-700 rounded-lg">
       <span className="text-2xl flex-shrink-0">{emoji}</span>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-gray-100">{activityType}</p>
