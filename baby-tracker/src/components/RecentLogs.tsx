@@ -79,7 +79,8 @@ const LogEntry = memo(function LogEntry({ log }: { log: Log }) {
     case 'nappy':
       emoji = '🧷';
       activityType = 'Nappy';
-      detail = (log.nappy_type || '').charAt(0).toUpperCase() + (log.nappy_type || '').slice(1);
+      const nappyTypeText = (log.nappy_type || '').charAt(0).toUpperCase() + (log.nappy_type || '').slice(1);
+      detail = log.poo_color ? `${nappyTypeText} • ${log.poo_color}` : nappyTypeText;
       break;
   }
 

@@ -446,7 +446,9 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     };
 
     const handleDone = () => {
-      setDuration(Math.floor(timerSeconds / 60)); // Convert to minutes
+      // Minimum 1 minute duration
+      const minutes = Math.floor(timerSeconds / 60);
+      setDuration(minutes < 1 ? 1 : minutes);
       setTimerRunning(false);
       setStep('feed-side');
     };
@@ -675,9 +677,20 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   if (step === 'sleep-duration') {
     const handleSave = () => {
       const totalMinutes = sleepHours * 60 + sleepMinutes;
-      if (totalMinutes > 0) {
-        goToNote({ log_type: 'sleep', duration_minutes: totalMinutes });
+      if (totalMinutes === 0) {
+        return;
       }
+
+      // Validate: sleep end time (customTime or now) - duration must not be negative
+      const sleepEndTime = customTime ? new Date(customTime).getTime() : Date.now();
+      const sleepStartTime = sleepEndTime - (totalMinutes * 60 * 1000);
+
+      if (sleepStartTime < 0) {
+        setError('Sleep duration is too long for the selected time. Please reduce the duration or select a later time.');
+        return;
+      }
+
+      goToNote({ log_type: 'sleep', duration_minutes: totalMinutes });
     };
 
     return (
@@ -690,6 +703,13 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
         </button>
 
         <h2 className="text-lg font-semibold text-gray-900 text-center">How long?</h2>
+
+        {/* Error message */}
+        {error && (
+          <div className="bg-red-100 border border-red-300 rounded-xl p-3 text-red-900 text-sm">
+            {error}
+          </div>
+        )}
 
         {/* Duration pickers */}
         <div className="bg-gray-100 rounded-xl p-4 space-y-4">
@@ -727,7 +747,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             onClick={handleSave}
             className="w-full bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-2xl py-4 font-semibold text-lg min-h-[48px]"
           >
-            Continue ({sleepHours}h {sleepMinutes}m)
+            Continue
           </button>
         </div>
       </div>

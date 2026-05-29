@@ -66,12 +66,12 @@
                 "state": {
                   "type": "markdown",
                   "state": {
-                    "file": "CLAUDE.md",
+                    "file": "SPECS.md",
                     "mode": "source",
                     "source": false
                   },
                   "icon": "lucide-file",
-                  "title": "CLAUDE"
+                  "title": "SPECS"
                 }
               }
             ]
@@ -244,7 +244,7 @@
                 }
               },
               "icon": "terminal",
-              "title": "Terminal: ⠐ Review PRD and finalize app progress"
+              "title": "Terminal: ⠂ Review PRD and finalize app progress"
             }
           },
           {
@@ -282,9 +282,9 @@
   },
   "active": "3a4404d61509c4b2",
   "lastOpenFiles": [
+    "SPECS.md",
     "CLAUDE.md",
     "Screenshot 2026-05-29 at 14.42.26.png",
-    "SPECS.md",
     "baby-tracker/supabase/migrations/add_poo_color.sql",
     "baby-tracker/CLAUDE.md",
     "CLAUDE.md.old",

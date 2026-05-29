@@ -39,22 +39,31 @@ export default function Dashboard() {
     });
   }, [logs]);
 
-  // Calculate breastfeed side balance for today
+  // Calculate breastfeed side balance for last 6 hours
   const breastfeedBalance = useMemo(() => {
-    const breastfeeds = todayLogs.filter(log => log.log_type === 'breastfeed');
-    const leftCount = breastfeeds.filter(log => log.side === 'left').length;
-    const rightCount = breastfeeds.filter(log => log.side === 'right').length;
+    const sixHoursAgo = Date.now() - 6 * 60 * 60 * 1000;
+    const recentBreastfeeds = todayLogs.filter(log =>
+      log.log_type === 'breastfeed' &&
+      new Date(log.logged_at).getTime() >= sixHoursAgo
+    );
 
+    const leftCount = recentBreastfeeds.filter(log => log.side === 'left').length;
+    const rightCount = recentBreastfeeds.filter(log => log.side === 'right').length;
+    const total = leftCount + rightCount;
+
+    // Only show warning if ALL feeds in last 6h are from ONE side only
+    let showWarning = false;
     let recommendation = '';
-    if (leftCount > rightCount) {
-      recommendation = 'Try right next';
-    } else if (rightCount > leftCount) {
-      recommendation = 'Try left next';
-    } else if (leftCount === rightCount && leftCount > 0) {
-      recommendation = 'Both sides equal today';
+    if (total > 0 && (leftCount === 0 || rightCount === 0)) {
+      showWarning = true;
+      if (leftCount > 0) {
+        recommendation = 'Try right next';
+      } else {
+        recommendation = 'Try left next';
+      }
     }
 
-    const lastFeed = breastfeeds.length > 0 ? breastfeeds[0] : null;
+    const lastFeed = recentBreastfeeds.length > 0 ? recentBreastfeeds[0] : null;
     let lastFeedText = '';
     if (lastFeed) {
       const now = Date.now();
@@ -81,7 +90,8 @@ export default function Dashboard() {
       rightCount,
       recommendation,
       lastFeedText,
-      hasFeeds: breastfeeds.length > 0,
+      showWarning,
+      total,
     };
   }, [todayLogs]);
 
@@ -224,17 +234,15 @@ export default function Dashboard() {
         {/* Activity Buttons */}
         <ActivityButtons onActivitySelect={handleActivitySelect} />
 
-        {/* Feed Side Balance Indicator */}
-        {breastfeedBalance.hasFeeds && (
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
+        {/* Feed Side Balance Warning - Only show if all feeds in last 6h are one side */}
+        {breastfeedBalance.showWarning && (
+          <div className="bg-amber-900 border border-amber-700 rounded-xl p-4">
             <p className="text-gray-300 text-sm mb-2">
-              {breastfeedBalance.lastFeedText} • Today: L:{breastfeedBalance.leftCount} R:{breastfeedBalance.rightCount}
+              {breastfeedBalance.lastFeedText} • Last 6h: L:{breastfeedBalance.leftCount} R:{breastfeedBalance.rightCount}
             </p>
-            {breastfeedBalance.recommendation && (
-              <p className="text-blue-400 font-semibold text-sm">
-                {breastfeedBalance.recommendation}
-              </p>
-            )}
+            <p className="text-amber-300 font-semibold text-sm">
+              ⚠️ {breastfeedBalance.recommendation}
+            </p>
           </div>
         )}
 

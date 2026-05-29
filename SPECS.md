@@ -1,9 +1,4 @@
-A few feedbacks regarding the app:
-- must log with minutes instead only with hours
-- if we log left breast and then right breast but in the same interval (5 min), count as one feed only with left + right and the duration total
-- remove for breastfeed the both option
-- log the color of poo as well  in the form (see screenshot)![[Screenshot 2026-05-29 at 14.42.26.png]] 
-- prefer when "earlier" cliked on the form for all activities to put when in the day so hour and minutes and the day also  because maybe it was a log for 2 days ago
-- add a new question: tell me what happens during the day - for the insights page
-- change timeline from 4 of 6 hours  
-- include a timer in the application for breastfeeding in the form (think of the most accurate position in the form and why: my wife is planning to turn on the timer and then at the end turn of and finish completing the form to add details on which breast it was)
+I should see the color of the poo in the poo details
+Remove the section on "Last feed" - it must only pop up if there was only left or right breastfeed for the last 6 hours just to give a warning
+On the button with Continue, there is Continue (hour/minute) - remove the (hour/minute)
+If we log a sleep like an hour ago but duration of 2 hours, there should be an error message (make sure this is the expectation)
