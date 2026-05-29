@@ -325,14 +325,17 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <div className="space-y-3 bg-gray-100 rounded-xl p-4">
             <p className="text-sm text-gray-700 text-center font-medium">Select date and time (last 7 days)</p>
 
-            <input
-              type="datetime-local"
-              value={customDateTime || defaultDateTime}
-              onChange={(e) => setCustomDateTime(e.target.value)}
-              min={minDateTime}
-              max={maxDateTime}
-              className="w-full bg-white border border-gray-300 rounded-xl p-4 text-gray-900 text-lg"
-            />
+            <div className="w-full overflow-hidden">
+              <input
+                type="datetime-local"
+                value={customDateTime || defaultDateTime}
+                onChange={(e) => setCustomDateTime(e.target.value)}
+                min={minDateTime}
+                max={maxDateTime}
+                className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-base max-w-full"
+                style={{ WebkitAppearance: 'none', maxWidth: '100%' }}
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <button
