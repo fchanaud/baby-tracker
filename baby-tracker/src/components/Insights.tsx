@@ -101,28 +101,32 @@ export default function Insights() {
             </div>
           )}
 
-          {/* Example questions */}
-          {!answer && !isLoading && (
-            <div className="mt-4 space-y-2">
-              <p className="text-xs text-gray-500">Try asking:</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "How many feeds today?",
-                  "Am I on track with nappies?",
-                  "Show sleep trend this week",
-                  "Average time between feeds?"
-                ].map((example, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setQuestion(example)}
-                    className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded-full transition-colors"
-                  >
-                    {example}
-                  </button>
-                ))}
-              </div>
+          {/* Example questions - always visible */}
+          <div className="mt-4 space-y-2">
+            <p className="text-xs text-gray-500">Quick questions:</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "How many feeds today?",
+                "How many nappies today?",
+                "Total sleep today?",
+                "When was the last feed?",
+                "Average time between feeds?",
+                "Am I on track?",
+                "Am I on track with nappies?",
+                "On track with feeds?",
+                "Show sleep trend this week",
+                "How many feeds yesterday?",
+              ].map((example, i) => (
+                <button
+                  key={i}
+                  onClick={() => setQuestion(example)}
+                  className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1.5 rounded-full transition-colors"
+                >
+                  {example}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

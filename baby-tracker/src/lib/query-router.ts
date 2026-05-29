@@ -54,6 +54,41 @@ export function routeQuery(question: string, todayLogs: Log[], allLogs: Log[], d
     };
   }
 
+  // Yesterday queries
+  if (normalized.match(/how many feeds? yesterday/i)) {
+    const yesterday = getYesterdayLogs(allLogs);
+    const count = yesterday.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle').length;
+    return {
+      type: 'simple',
+      answer: `Yesterday you logged **${count} feed${count === 1 ? '' : 's'}**.`,
+      needsAPI: false,
+    };
+  }
+
+  if (normalized.match(/how many napp(y|ies) yesterday/i)) {
+    const yesterday = getYesterdayLogs(allLogs);
+    const count = yesterday.filter(l => l.log_type === 'nappy').length;
+    const wet = yesterday.filter(l => l.log_type === 'nappy' && (l.nappy_type === 'wet' || l.nappy_type === 'both')).length;
+    return {
+      type: 'simple',
+      answer: `Yesterday you logged **${count} nappy change${count === 1 ? '' : 's'}** (${wet} wet).`,
+      needsAPI: false,
+    };
+  }
+
+  if (normalized.match(/(total|how much) sleep yesterday/i)) {
+    const yesterday = getYesterdayLogs(allLogs);
+    const mins = yesterday.filter(l => l.log_type === 'sleep')
+      .reduce((sum, l) => sum + (l.duration_minutes || 0), 0);
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    return {
+      type: 'simple',
+      answer: `Yesterday's total sleep: **${hours}h ${minutes}m**.`,
+      needsAPI: false,
+    };
+  }
+
   // Last feed time
   if (normalized.match(/when (was|is) (the )?(last|most recent) feed/i) || normalized === 'last feed') {
     const feeds = allLogs.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle')
@@ -81,19 +116,22 @@ export function routeQuery(question: string, todayLogs: Log[], allLogs: Log[], d
   }
 
   // Average time between feeds
+  // Example: Feed 1 @ 60min ago, Feed 2 @ 40min ago, Feed 3 @ 10min ago
+  // Gaps: 60→40 = 20min, 40→10 = 30min → Average = 25min
   if (normalized.match(/average (time|gap) between feeds/i) || normalized.match(/how (long|often) between feeds/i)) {
-    const feeds = todayLogs.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle')
+    const feeds = allLogs.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle')
       .sort((a, b) => new Date(a.logged_at).getTime() - new Date(b.logged_at).getTime());
 
     if (feeds.length < 2) {
       return { type: 'simple', answer: 'Need at least 2 feeds to calculate average time between them.', needsAPI: false };
     }
 
+    // Calculate gaps between consecutive feeds (logged_at = feed end time)
     let totalGapMinutes = 0;
     for (let i = 1; i < feeds.length; i++) {
-      const prev = new Date(feeds[i - 1].logged_at).getTime();
-      const curr = new Date(feeds[i].logged_at).getTime();
-      totalGapMinutes += (curr - prev) / (1000 * 60);
+      const prevEnd = new Date(feeds[i - 1].logged_at).getTime();
+      const currEnd = new Date(feeds[i].logged_at).getTime();
+      totalGapMinutes += (currEnd - prevEnd) / (1000 * 60);
     }
 
     const avgGapMinutes = Math.round(totalGapMinutes / (feeds.length - 1));
@@ -102,7 +140,7 @@ export function routeQuery(question: string, todayLogs: Log[], allLogs: Log[], d
 
     return {
       type: 'simple',
-      answer: `Today's average time between feeds: **${avgHours > 0 ? `${avgHours}h ` : ''}${avgMins}m**. Newborns typically feed every 2-3 hours.`,
+      answer: `Average time between feeds (last ${feeds.length} feeds): **${avgHours > 0 ? `${avgHours}h ` : ''}${avgMins}m**. Newborns typically feed every 2-3 hours.`,
       needsAPI: false,
     };
   }
@@ -173,4 +211,22 @@ ${feedsEval.state === 'green' ? '✅ You\'re on track!' : feedsEval.state === 'a
     type: 'complex',
     needsAPI: true,
   };
+}
+
+// Helper: Get yesterday's logs
+function getYesterdayLogs(allLogs: Log[]): Log[] {
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+  const yesterdayEnd = new Date(todayStart);
+  yesterdayEnd.setMilliseconds(yesterdayEnd.getMilliseconds() - 1);
+
+  return allLogs.filter(log => {
+    const logDate = new Date(log.logged_at);
+    return logDate >= yesterdayStart && logDate <= yesterdayEnd;
+  });
 }
