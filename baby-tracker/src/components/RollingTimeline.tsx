@@ -212,7 +212,7 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
             onClick={() => setWindowOffset(windowOffset - 1)}
             className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
           >
-            ← 4h
+            ← 6h
           </button>
         ) : (
           <div className="w-16" />
@@ -227,7 +227,7 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
             onClick={() => setWindowOffset(windowOffset + 1)}
             className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-3 rounded-xl transition-colors min-h-[48px] flex items-center gap-2 font-medium"
           >
-            4h →
+            6h →
           </button>
         ) : (
           <div className="w-16" />

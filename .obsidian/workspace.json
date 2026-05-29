@@ -244,7 +244,7 @@
                 }
               },
               "icon": "terminal",
-              "title": "Terminal: ⠂ Review PRD and finalize app progress"
+              "title": "Terminal: ⠐ Review PRD and finalize app progress"
             }
           },
           {
@@ -284,6 +284,7 @@
   "lastOpenFiles": [
     "SPECS.md",
     "CLAUDE.md",
+    "SPECS.md.tmp.61033.989a5e286dba",
     "Screenshot 2026-05-29 at 14.42.26.png",
     "baby-tracker/supabase/migrations/add_poo_color.sql",
     "baby-tracker/CLAUDE.md",
@@ -297,7 +298,6 @@
     "roland-garros-bot/rg_bot_WORKING.py.tmp.76966.7c1973b020d4",
     "roland-garros-bot/test_scraper.py",
     "roland-garros-bot/test_scraper.py.tmp.76966.4e5302839bcb",
-    "roland-garros-bot/rg_bot_WORKING.py.tmp.76966.f35f62907019",
     "roland-garros-bot/SOLUTION_SUMMARY.md",
     "roland-garros-bot/README_TESTING.md",
     "Screenshot 2026-05-26 at 14.19.01.png",

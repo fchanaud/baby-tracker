@@ -414,7 +414,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setFeedType('breast');
-              setStep('feed-timer');
+              // Skip timer if "Earlier" was selected (customTime is set)
+              setStep(customTime ? 'feed-duration' : 'feed-timer');
             }}
             className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
