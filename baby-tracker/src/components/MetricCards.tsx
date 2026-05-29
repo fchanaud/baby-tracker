@@ -60,27 +60,20 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
     .filter(log => log.log_type === 'sleep')
     .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime());
 
-  let awakeTitle = 'Time Awake';
   let awakeValue = 'N/A';
-  let isCurrentlySleeping = false;
 
   if (allSleepLogs.length > 0) {
     const lastSleep = allSleepLogs[0];
     const sleepStartTime = new Date(lastSleep.logged_at).getTime();
     const sleepEndTime = sleepStartTime + (lastSleep.duration_minutes || 0) * 60 * 1000;
     const now = Date.now();
-
-    if (sleepEndTime > now) {
-      // Currently sleeping
-      const minutesAsleep = Math.floor((now - sleepStartTime) / (1000 * 60));
-      awakeTitle = '😴 Sleeping';
-      awakeValue = `${Math.floor(minutesAsleep / 60)}h ${minutesAsleep % 60}m`;
-      isCurrentlySleeping = true;
-    } else {
-      // Awake since last sleep ended
-      const minutesAwake = Math.floor((now - sleepEndTime) / (1000 * 60));
-      awakeValue = `${Math.floor(minutesAwake / 60)}h ${minutesAwake % 60}m`;
-    }
+    const refPoint = sleepEndTime > now ? now : sleepEndTime;
+    const minutesAwake = Math.floor((now - refPoint) / (1000 * 60));
+    awakeValue = minutesAwake < 1
+      ? 'Just now'
+      : minutesAwake < 60
+      ? `${minutesAwake}m ago`
+      : `${Math.floor(minutesAwake / 60)}h ${minutesAwake % 60}m`;
   }
 
   // Get sheet title and logs based on selected metric
@@ -127,8 +120,8 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
         />
 
         <MetricCard
-          title={awakeTitle}
-          value={`${awakeValue}${isCurrentlySleeping ? '' : ` · ${awakeStatus.target || ''}`}`}
+          title="Time Awake"
+          value={`${awakeValue}${awakeStatus.target ? ` · ${awakeStatus.target}` : ''}`}
           state={awakeStatus.state}
           message={awakeStatus.message}
           onClick={undefined}

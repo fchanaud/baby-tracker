@@ -31,18 +31,16 @@ export default function EnvironmentToggle({ identity }: EnvironmentToggleProps) 
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50">
-      <button
-        onClick={toggleEnvironment}
-        className={`${
-          environment === 'production'
-            ? 'bg-green-600 hover:bg-green-700'
-            : 'bg-yellow-600 hover:bg-yellow-700'
-        } text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-colors min-h-[40px] flex items-center gap-2`}
-      >
-        <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-        ENV: {environment.toUpperCase()}
-      </button>
-    </div>
+    <button
+      onClick={toggleEnvironment}
+      className={`${
+        environment === 'production'
+          ? 'bg-green-600 hover:bg-green-700'
+          : 'bg-yellow-600 hover:bg-yellow-700'
+      } text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-colors min-h-[40px] flex items-center gap-2`}
+    >
+      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+      ENV: {environment.toUpperCase()}
+    </button>
   );
 }

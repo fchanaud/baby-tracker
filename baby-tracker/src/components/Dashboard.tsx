@@ -174,11 +174,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 pb-20">
+    <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
       <Navbar identity={identity} onSwitchIdentity={() => setIdentity(null)} />
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div className="flex-1 max-w-2xl w-full mx-auto px-4 py-6 space-y-6">
         {/* Save Error Banner */}
         {saveError && (
           <div className="bg-red-100 border border-red-300 rounded-xl p-4 flex items-center gap-3">
@@ -240,8 +240,12 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Environment Toggle (Franklin only) */}
-      <EnvironmentToggle identity={identity} />
+      {/* Environment Toggle (Franklin only) — sticky bottom bar */}
+      {identity === 'Franklin' && (
+        <div className="sticky bottom-0 flex justify-center py-3 bg-gray-900/80 backdrop-blur-sm">
+          <EnvironmentToggle identity={identity} />
+        </div>
+      )}
     </div>
   );
 }
