@@ -13,8 +13,17 @@ import { useBabyProfile } from '@/hooks/useBabyProfile';
 import MetricDetailsSheet from './MetricDetailsSheet';
 
 interface MetricCardsProps {
-  logs: Log[]; // Logs for selected date (today)
-  allLogs: Log[]; // All logs (for time calculations)
+  logs: Log[];
+  allLogs: Log[];
+}
+
+function timeAgo(ms: number): string {
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h ${m}m ago` : `${h}h ago`;
 }
 
 export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
@@ -22,77 +31,73 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
   const [, forceUpdate] = useState(0);
   const [selectedMetric, setSelectedMetric] = useState<'feeds' | 'sleep' | 'nappies' | null>(null);
 
-  // Force re-render every minute for live time awake counter
   useEffect(() => {
-    const interval = setInterval(() => {
-      forceUpdate(n => n + 1);
-    }, 60000); // Update every minute
-
+    const interval = setInterval(() => forceUpdate(n => n + 1), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Evaluate all metrics using NHS thresholds
   const feedsStatus = evaluateFeedsMetric(logs, allLogs);
   const nappiesStatus = evaluateNappiesMetric(logs, profile?.dateOfBirth);
   const sleepStatus = evaluateSleepMetric(logs, allLogs, profile?.dateOfBirth);
   const awakeStatus = evaluateTimeAwakeMetric(allLogs);
 
-  // Calculate display values and filter logs by type
-  const feedLogs = logs.filter(log =>
-    log.log_type === 'breastfeed' || log.log_type === 'bottle'
-  );
+  const feedLogs = logs.filter(log => log.log_type === 'breastfeed' || log.log_type === 'bottle');
   const feedsToday = feedLogs.length;
 
   const sleepLogs = logs.filter(log => log.log_type === 'sleep');
-  const totalSleepMinutes = sleepLogs
-    .reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
+  const totalSleepMinutes = sleepLogs.reduce((sum, log) => sum + (log.duration_minutes || 0), 0);
   const totalSleepHours = Math.floor(totalSleepMinutes / 60);
   const totalSleepMins = totalSleepMinutes % 60;
 
   const nappyLogs = logs.filter(
-    log => log.log_type === 'nappy' &&
-    (log.nappy_type === 'wet' || log.nappy_type === 'both')
+    log => log.log_type === 'nappy' && (log.nappy_type === 'wet' || log.nappy_type === 'both')
   );
   const wetNappiesToday = nappyLogs.length;
 
-  // Time awake calculation
+  // Time awake
   const allSleepLogs = allLogs
     .filter(log => log.log_type === 'sleep')
     .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime());
 
   let awakeValue = 'N/A';
-
   if (allSleepLogs.length > 0) {
-    const lastSleep = allSleepLogs[0];
-    // logged_at is when the sleep ENDED (when you logged it after baby woke)
-    const sleepEndTime = new Date(lastSleep.logged_at).getTime();
-    const now = Date.now();
-    const minutesAwake = Math.floor((now - sleepEndTime) / (1000 * 60));
-    awakeValue = minutesAwake < 1
-      ? 'Just now'
-      : minutesAwake < 60
-      ? `${minutesAwake}m ago`
-      : `${Math.floor(minutesAwake / 60)}h ${minutesAwake % 60}m`;
+    const sleepEndTime = new Date(allSleepLogs[0].logged_at).getTime();
+    awakeValue = timeAgo(Date.now() - sleepEndTime);
   }
 
-  // Get sheet title and logs based on selected metric
-  const getSheetData = () => {
-    switch (selectedMetric) {
-      case 'feeds':
-        return { title: 'Feeds Today', logs: feedLogs };
-      case 'sleep':
-        return { title: 'Sleep Today', logs: sleepLogs };
-      case 'nappies':
-        return { title: 'Nappies Today', logs: nappyLogs };
-      default:
-        return { title: '', logs: [] };
-    }
-  };
+  // Last nappy (any type)
+  const lastNappy = allLogs
+    .filter(log => log.log_type === 'nappy')
+    .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())[0];
+  const lastNappyValue = lastNappy ? timeAgo(Date.now() - new Date(lastNappy.logged_at).getTime()) : 'N/A';
 
-  const sheetData = getSheetData();
+  // Last milk (breastfeed or bottle) with type detail
+  const lastMilk = allLogs
+    .filter(log => log.log_type === 'breastfeed' || log.log_type === 'bottle')
+    .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())[0];
+  let lastMilkValue = 'N/A';
+  let lastMilkDetail = '';
+  if (lastMilk) {
+    lastMilkValue = timeAgo(Date.now() - new Date(lastMilk.logged_at).getTime());
+    if (lastMilk.log_type === 'breastfeed') {
+      lastMilkDetail = lastMilk.side ? lastMilk.side : 'breast';
+    } else {
+      lastMilkDetail = lastMilk.amount_ml ? `${lastMilk.amount_ml}ml` : 'bottle';
+    }
+  }
+
+  const sheetData = (() => {
+    switch (selectedMetric) {
+      case 'feeds': return { title: 'Feeds Today', logs: feedLogs };
+      case 'sleep': return { title: 'Sleep Today', logs: sleepLogs };
+      case 'nappies': return { title: 'Nappies Today', logs: nappyLogs };
+      default: return { title: '', logs: [] };
+    }
+  })();
 
   return (
     <>
+      {/* Totals — 2×2 grid */}
       <div className="grid grid-cols-2 gap-4">
         <MetricCard
           title="Feeds Today"
@@ -101,7 +106,6 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
           message={feedsStatus.message}
           onClick={() => setSelectedMetric('feeds')}
         />
-
         <MetricCard
           title="Total Sleep"
           value={`${totalSleepMinutes > 0 ? `${totalSleepHours}h ${totalSleepMins}m` : '0h'} · ${sleepStatus.target || ''}`}
@@ -109,7 +113,6 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
           message={sleepStatus.message}
           onClick={() => setSelectedMetric('sleep')}
         />
-
         <MetricCard
           title="Nappies Today"
           value={`${wetNappiesToday} · ${nappiesStatus.target || ''}`}
@@ -117,17 +120,25 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
           message={nappiesStatus.message}
           onClick={() => setSelectedMetric('nappies')}
         />
+      </div>
 
-        <MetricCard
-          title="Time Awake"
-          value={`${awakeValue}${awakeStatus.target ? ` · ${awakeStatus.target}` : ''}`}
+      {/* Recency row — 3 cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <SmallCard emoji="🧷" title="Last nappy" value={lastNappyValue} />
+        <SmallCard
+          emoji="⏱"
+          title="Time awake"
+          value={awakeValue}
           state={awakeStatus.state}
-          message={awakeStatus.message}
-          onClick={undefined}
+        />
+        <SmallCard
+          emoji="🍼"
+          title="Last milk"
+          value={lastMilkValue}
+          detail={lastMilkDetail}
         />
       </div>
 
-      {/* Metric Details Bottom Sheet */}
       {selectedMetric && (
         <MetricDetailsSheet
           title={sheetData.title}
@@ -148,35 +159,43 @@ interface MetricCardProps {
 }
 
 function MetricCard({ title, value, state, message, onClick }: MetricCardProps) {
-  // Color based on state
   const colors = {
     green: 'bg-green-900 border-green-700',
     amber: 'bg-amber-900 border-amber-700',
     red: 'bg-red-900 border-red-700',
   };
-
   const baseClasses = `${colors[state]} border rounded-xl p-4`;
-  const interactiveClasses = onClick
-    ? 'cursor-pointer active:scale-95 transition-transform'
-    : '';
+  const interactiveClasses = onClick ? 'cursor-pointer active:scale-95 transition-transform' : '';
 
   return (
-    <div
-      className={`${baseClasses} ${interactiveClasses}`}
-      onClick={onClick}
-    >
+    <div className={`${baseClasses} ${interactiveClasses}`} onClick={onClick}>
       <p className="text-sm text-gray-400 font-medium mb-1">{title}</p>
       <p className="text-lg font-bold text-gray-100 leading-tight">
         <span>{value.split(' · ')[0]}</span>
         {value.includes(' · ') && (
-          <span className="text-xs font-normal text-gray-500 ml-1">
-            · {value.split(' · ')[1]}
-          </span>
+          <span className="text-xs font-normal text-gray-500 ml-1">· {value.split(' · ')[1]}</span>
         )}
       </p>
-      {message && (
-        <p className="text-xs text-gray-300 mt-2 leading-snug">{message}</p>
-      )}
+      {message && <p className="text-xs text-gray-300 mt-2 leading-snug">{message}</p>}
+    </div>
+  );
+}
+
+interface SmallCardProps {
+  emoji: string;
+  title: string;
+  value: string;
+  detail?: string;
+  state?: AlertState;
+}
+
+function SmallCard({ emoji, title, value, detail, state }: SmallCardProps) {
+  const borderColor = state === 'red' ? 'border-red-700' : state === 'amber' ? 'border-amber-700' : 'border-gray-700';
+  return (
+    <div className={`bg-gray-800 border ${borderColor} rounded-xl p-3 flex flex-col gap-1`}>
+      <p className="text-xs text-gray-400 font-medium leading-none">{emoji} {title}</p>
+      <p className="text-sm font-bold text-gray-100 leading-tight">{value}</p>
+      {detail && <p className="text-xs text-gray-500 leading-none">{detail}</p>}
     </div>
   );
 }
