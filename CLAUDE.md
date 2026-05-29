@@ -9,7 +9,7 @@ When Franklin writes a change request in `SPECS.md` and ask in claude to execute
 4. **Implement** sequentially, confirming each item before moving to the next
 5. **Verify** — `npm run build` must pass, test in local dev, fix any bugs found
 6. **Deploy** — push, monitor Vercel until `READY`, confirm production URL to Franklin
-7. **Clear** — wipe `SPECS.md` and confirm to Franklin once everything is done (and also any screenshots that got uploaded)
+7. **Clear** — wipe `SPECS.md` and confirm to Franklin once everything is done and a short summary (and also delete any screenshot that got uploaded eventually)
 
 If any item fails: stop, report what succeeded and what didn't, do NOT clear SPECS.md. Do stop working giving me a summary if it takes longer than 10 minutes.
 

@@ -46,6 +46,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   const [showPooGuide, setShowPooGuide] = useState(false);
   const [durationHours, setDurationHours] = useState(0);
   const [durationMinutes, setDurationMinutes] = useState(15);
+  const [sleepHours, setSleepHours] = useState(1);
+  const [sleepMinutes, setSleepMinutes] = useState(0);
   const [noteText, setNoteText] = useState('');
   const [pendingLogData, setPendingLogData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,27 +69,35 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     };
   }, [timerRunning]);
 
-  // Calculate breastfeed side balance for today
+  // Calculate breastfeed side balance for last 6 hours
   const breastfeedBalance = useMemo(() => {
-    const breastfeeds = todayLogs.filter(log => log.log_type === 'breastfeed');
-    const leftCount = breastfeeds.filter(log => log.side === 'left').length;
-    const rightCount = breastfeeds.filter(log => log.side === 'right').length;
+    const sixHoursAgo = Date.now() - 6 * 60 * 60 * 1000;
+    const recentBreastfeeds = todayLogs.filter(log =>
+      log.log_type === 'breastfeed' &&
+      new Date(log.logged_at).getTime() >= sixHoursAgo
+    );
 
+    const leftCount = recentBreastfeeds.filter(log => log.side === 'left').length;
+    const rightCount = recentBreastfeeds.filter(log => log.side === 'right').length;
+    const total = leftCount + rightCount;
+
+    // Only show recommendation if there's an imbalance of 2+ feeds in last 6 hours
     let recommendation = '';
-    if (leftCount > rightCount) {
-      recommendation = 'Try right next';
-    } else if (rightCount > leftCount) {
-      recommendation = 'Try left next';
-    } else if (leftCount === rightCount && leftCount > 0) {
-      recommendation = 'Both sides equal today';
+    const imbalance = Math.abs(leftCount - rightCount);
+    if (imbalance >= 2 && total > 0) {
+      if (leftCount > rightCount) {
+        recommendation = 'Try right next';
+      } else {
+        recommendation = 'Try left next';
+      }
     }
 
     return {
       leftCount,
       rightCount,
       recommendation,
-      hasFeeds: breastfeeds.length > 0,
-      total: leftCount + rightCount,
+      hasFeeds: recentBreastfeeds.length > 0,
+      total,
     };
   }, [todayLogs]);
 
@@ -111,6 +121,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     setShowPooGuide(false);
     setDurationHours(0);
     setDurationMinutes(15);
+    setSleepHours(1);
+    setSleepMinutes(0);
   };
 
   const goToNote = (logData: any) => {
@@ -258,12 +270,19 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
 
     const handleEarlierConfirm = () => {
       if (customDateTime) {
-        // Validate date is within last 7 days
+        // Validate date is within last 7 days and not in the future
         const selectedDate = new Date(customDateTime);
+        const now = new Date();
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-        if (selectedDate >= sevenDaysAgo && selectedDate <= new Date()) {
+        if (selectedDate > now) {
+          setError('Cannot log activities in the future');
+          return;
+        }
+
+        if (selectedDate >= sevenDaysAgo && selectedDate <= now) {
           setCustomTime(selectedDate.toISOString());
+          setError(null);
 
           // Route to next step
           if (logType === 'breastfeed' || logType === 'bottle') {
@@ -494,7 +513,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-gray-700">
-                Today: L:{breastfeedBalance.leftCount} | R:{breastfeedBalance.rightCount}
+                Last 6h: L:{breastfeedBalance.leftCount} | R:{breastfeedBalance.rightCount}
               </span>
             </div>
             {/* Visual progress bar */}
@@ -645,11 +664,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
 
   // Step 2c: Sleep duration
   if (step === 'sleep-duration') {
-    const [hours, setHours] = useState(1);
-    const [minutes, setMinutes] = useState(0);
-
     const handleSave = () => {
-      const totalMinutes = hours * 60 + minutes;
+      const totalMinutes = sleepHours * 60 + sleepMinutes;
       if (totalMinutes > 0) {
         goToNote({ log_type: 'sleep', duration_minutes: totalMinutes });
       }
@@ -673,8 +689,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Hours</label>
               <select
-                value={hours}
-                onChange={(e) => setHours(Number(e.target.value))}
+                value={sleepHours}
+                onChange={(e) => setSleepHours(Number(e.target.value))}
                 className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-center text-2xl font-semibold min-h-[48px]"
               >
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(h => (
@@ -687,8 +703,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Minutes</label>
               <select
-                value={minutes}
-                onChange={(e) => setMinutes(Number(e.target.value))}
+                value={sleepMinutes}
+                onChange={(e) => setSleepMinutes(Number(e.target.value))}
                 className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-center text-2xl font-semibold min-h-[48px]"
               >
                 {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(m => (
@@ -702,7 +718,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             onClick={handleSave}
             className="w-full bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-2xl py-4 font-semibold text-lg min-h-[48px]"
           >
-            Continue
+            Continue ({sleepHours}h {sleepMinutes}m)
           </button>
         </div>
       </div>

@@ -51,7 +51,7 @@
                   },
                   "pinned": true,
                   "icon": "terminal",
-                  "title": "Terminal: ⠂ Fix env toggle button position on home page"
+                  "title": "Terminal: ✳ Fix env toggle button position on home page"
                 }
               }
             ]
@@ -280,13 +280,13 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "faa0a82c7bfcfe40",
+  "active": "3a4404d61509c4b2",
   "lastOpenFiles": [
-    "baby-tracker/supabase/migrations/add_poo_color.sql",
     "CLAUDE.md",
-    "baby-tracker/CLAUDE.md",
     "Screenshot 2026-05-29 at 14.42.26.png",
     "SPECS.md",
+    "baby-tracker/supabase/migrations/add_poo_color.sql",
+    "baby-tracker/CLAUDE.md",
     "CLAUDE.md.old",
     "CLAUDE.md.proposed",
     "baby-tracker/INSIGHTS_TEST_CASES.md",
@@ -300,7 +300,6 @@
     "roland-garros-bot/rg_bot_WORKING.py.tmp.76966.f35f62907019",
     "roland-garros-bot/SOLUTION_SUMMARY.md",
     "roland-garros-bot/README_TESTING.md",
-    "roland-garros-bot/README_TESTING.md.tmp.76966.ed91ca23fa42",
     "Screenshot 2026-05-26 at 14.19.01.png",
     "baby-tracker/DESIGN_SYSTEM.md",
     "baby-tracker/README.md",

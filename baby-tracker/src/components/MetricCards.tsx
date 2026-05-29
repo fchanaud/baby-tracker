@@ -23,15 +23,19 @@ function timeAgo(ms: number): string {
   if (mins < 60) return `${mins}m ago`;
   const h = Math.floor(mins / 60);
   const m = mins % 60;
+  // Don't show "0h" - show minutes only if less than 1 hour
+  if (h === 0) return `${mins}m ago`;
   return m > 0 ? `${h}h ${m}m ago` : `${h}h ago`;
 }
 
 function duration(ms: number): string {
   const mins = Math.floor(ms / 60000);
   if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins} min`;
+  if (mins < 60) return `${mins}m`;
   const h = Math.floor(mins / 60);
   const m = mins % 60;
+  // Don't show "0h" - show minutes only if less than 1 hour
+  if (h === 0) return `${mins}m`;
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
@@ -105,8 +109,8 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
 
   return (
     <>
-      {/* Totals — 2×2 grid */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Totals — 3 columns in single row */}
+      <div className="grid grid-cols-3 gap-3">
         <MetricCard
           title="Feeds Today"
           value={`${feedsToday} · ${feedsStatus.target || ''}`}
