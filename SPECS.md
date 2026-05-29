@@ -1,1 +1,1 @@
-Only show message for breastfeed on homepage to 
+For breastfeed on homepage to try left or right next, it must considerate also the breastfeed: both log. If there was a both breasfeed in the last 6 hours, the message should not appear

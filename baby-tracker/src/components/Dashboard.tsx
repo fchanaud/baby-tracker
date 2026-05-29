@@ -49,12 +49,14 @@ export default function Dashboard() {
 
     const leftCount = recentBreastfeeds.filter(log => log.side === 'left').length;
     const rightCount = recentBreastfeeds.filter(log => log.side === 'right').length;
+    const bothCount = recentBreastfeeds.filter(log => log.side === 'both').length;
     const total = leftCount + rightCount;
 
     // Only show warning if ALL feeds in last 6h are from ONE side only
+    // AND there are no "both" feeds
     let showWarning = false;
     let recommendation = '';
-    if (total > 0 && (leftCount === 0 || rightCount === 0)) {
+    if (total > 0 && bothCount === 0 && (leftCount === 0 || rightCount === 0)) {
       showWarning = true;
       if (leftCount > 0) {
         recommendation = 'Try right next';
