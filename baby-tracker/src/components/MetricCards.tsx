@@ -64,11 +64,10 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
 
   if (allSleepLogs.length > 0) {
     const lastSleep = allSleepLogs[0];
-    const sleepStartTime = new Date(lastSleep.logged_at).getTime();
-    const sleepEndTime = sleepStartTime + (lastSleep.duration_minutes || 0) * 60 * 1000;
+    // logged_at is when the sleep ENDED (when you logged it after baby woke)
+    const sleepEndTime = new Date(lastSleep.logged_at).getTime();
     const now = Date.now();
-    const refPoint = sleepEndTime > now ? now : sleepEndTime;
-    const minutesAwake = Math.floor((now - refPoint) / (1000 * 60));
+    const minutesAwake = Math.floor((now - sleepEndTime) / (1000 * 60));
     awakeValue = minutesAwake < 1
       ? 'Just now'
       : minutesAwake < 60
