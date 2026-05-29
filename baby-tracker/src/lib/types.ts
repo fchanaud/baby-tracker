@@ -4,6 +4,7 @@ export type ParsedLogType = LogType | 'invalid';
 export type Side = 'left' | 'right' | 'both';
 export type NappyType = 'wet' | 'poo' | 'both';
 export type PooConsistency = 'liquid' | 'normal' | 'soft';
+export type PooColor = 'yellow' | 'green' | 'brown' | 'red' | 'black' | 'white' | 'gray';
 
 // Database log entry
 export interface Log {
@@ -21,6 +22,7 @@ export interface Log {
   // Nappy-specific
   nappy_type?: NappyType;
   poo_consistency?: PooConsistency;
+  poo_color?: PooColor;
 
   // Note-specific
   note?: string;
@@ -37,6 +39,7 @@ export interface ParsedLog {
   amount_ml?: number;
   nappy_type?: NappyType;
   poo_consistency?: PooConsistency;
+  poo_color?: PooColor;
   note?: string;
   logged_at?: string; // ISO 8601 timestamp
   needs_review?: boolean;

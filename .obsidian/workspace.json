@@ -4,39 +4,80 @@
     "type": "split",
     "children": [
       {
-        "id": "199e33d740d74d56",
-        "type": "tabs",
+        "id": "8e6d68fceb178626",
+        "type": "split",
         "children": [
           {
-            "id": "d058804366c8ab51",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "baby-tracker/CLAUDE.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "CLAUDE"
-            }
+            "id": "6c9885ce6172c946",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "faa0a82c7bfcfe40",
+                "type": "leaf",
+                "pinned": true,
+                "state": {
+                  "type": "terminal:terminal",
+                  "state": {
+                    "terminal:terminal": {
+                      "cwd": "/Users/fchanaud/Desktop/claude",
+                      "focus": false,
+                      "profile": {
+                        "args": [
+                          "--login"
+                        ],
+                        "executable": "/bin/zsh",
+                        "followTheme": true,
+                        "name": "",
+                        "platforms": {
+                          "darwin": true
+                        },
+                        "pythonExecutable": "python3",
+                        "restoreHistory": false,
+                        "rightClickAction": "copyPaste",
+                        "successExitCodes": [
+                          "0",
+                          "SIGINT",
+                          "SIGTERM"
+                        ],
+                        "terminalOptions": {
+                          "documentOverride": null
+                        },
+                        "type": "integrated",
+                        "useWin32Conhost": true
+                      },
+                      "profileSourceId": "darwinIntegratedDefault",
+                      "serial": null
+                    }
+                  },
+                  "pinned": true,
+                  "icon": "terminal",
+                  "title": "Terminal: ✳ Fix env toggle button position on home page"
+                }
+              }
+            ]
           },
           {
-            "id": "01493ec42d64b668",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "baby-tracker/TEST_ENVIRONMENT_SETUP.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "TEST_ENVIRONMENT_SETUP"
-            }
+            "id": "3e15721c5e0ac483",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "b1f5735953caaf9f",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "CLAUDE.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "CLAUDE"
+                }
+              }
+            ]
           }
         ],
-        "currentTab": 1
+        "direction": "horizontal"
       }
     ],
     "direction": "vertical"
@@ -68,7 +109,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "[\"color\"]",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -93,7 +134,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 210.5
+    "width": 205.5
   },
   "right": {
     "id": "8e214f86cef350da",
@@ -168,7 +209,6 @@
           {
             "id": "3a4404d61509c4b2",
             "type": "leaf",
-            "pinned": true,
             "state": {
               "type": "terminal:terminal",
               "state": {
@@ -203,9 +243,8 @@
                   "serial": null
                 }
               },
-              "pinned": true,
               "icon": "terminal",
-              "title": "Terminal: ⠐ Clarify app context status"
+              "title": "Terminal: ⠂ Review PRD and finalize app progress"
             }
           },
           {
@@ -214,13 +253,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "baby-tracker/NHS_RULES.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of NHS_RULES"
+              "title": "Outline"
             }
           }
         ],
@@ -228,7 +266,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 687.5
+    "width": 697.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -242,53 +280,52 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "01493ec42d64b668",
+  "active": "3a4404d61509c4b2",
   "lastOpenFiles": [
-    "baby-tracker/TEST_ENVIRONMENT_SETUP.md",
-    "baby-tracker/src/components/EnvironmentToggle.tsx",
-    "baby-tracker/FEEDBACK.md",
+    "CLAUDE.md",
     "baby-tracker/CLAUDE.md",
-    "baby-tracker/DESIGN_SYSTEM.md",
+    "Screenshot 2026-05-29 at 14.42.26.png",
+    "SPECS.md",
+    "CLAUDE.md.old",
+    "CLAUDE.md.proposed",
+    "baby-tracker/INSIGHTS_TEST_CASES.md",
+    "baby-tracker/src/lib/query-router.ts",
     "baby-tracker/PRD.md",
+    "roland-garros-bot/com.rolandgarros.desktop.plist.tmp.76966.9b3cc25b8c9b",
+    "roland-garros-bot/rg_bot_WORKING.py.tmp.76966.a6ef43a033e0",
+    "roland-garros-bot/rg_bot_WORKING.py.tmp.76966.7c1973b020d4",
+    "roland-garros-bot/test_scraper.py",
+    "roland-garros-bot/test_scraper.py.tmp.76966.4e5302839bcb",
+    "roland-garros-bot/rg_bot_WORKING.py.tmp.76966.f35f62907019",
+    "roland-garros-bot/SOLUTION_SUMMARY.md",
+    "roland-garros-bot/README_TESTING.md",
+    "roland-garros-bot/README_TESTING.md.tmp.76966.ed91ca23fa42",
+    "Screenshot 2026-05-26 at 14.19.01.png",
+    "baby-tracker/DESIGN_SYSTEM.md",
     "baby-tracker/README.md",
+    "baby-tracker/TEST_ENVIRONMENT_SETUP.md",
+    "roland-garros-bot/FINAL_SETUP.md",
+    "Roland Garros - 2026-05-26.md",
+    "roland-garros-bot/PROJECT_SUMMARY.md",
+    "roland-garros-bot/DESKTOP_SETUP.md",
+    "roland-garros-bot/venv/lib/python3.14/site-packages/idna-3.16.dist-info/licenses/LICENSE.md",
+    "roland-garros-bot/venv/lib/python3.14/site-packages/soupsieve-2.8.4.dist-info/licenses/LICENSE.md",
+    "roland-garros-bot/venv/lib/python3.14/site-packages/pip-26.1.dist-info/licenses/src/pip/_vendor/idna/LICENSE.md",
+    "roland-garros-bot/venv/lib/python3.14/site-packages/pip/_vendor/idna/LICENSE.md",
+    "roland-garros-bot/OUTLOOK_SETUP.md",
+    "roland-garros-bot/EXPEDIA_SETUP.md",
+    "roland-garros-bot/CHECKLIST.md",
+    "roland-garros-bot/DEPLOYMENT.md",
+    "roland-garros-bot/INDEX.md",
+    "roland-garros-bot/QUICKSTART.md",
+    "roland-garros-bot/README.md",
     "Screenshot 2026-05-25 at 16.27.40.png",
     "Screenshot 2026-05-25 at 15.47.10.png",
-    "baby-tracker/src/components/NormalCheckSheet.tsx",
-    "baby-tracker/src/app/api/normal-check/route.ts",
-    "baby-tracker/src/app/api/normal-check/route.ts.tmp.25588.6ab6f9377b9d",
-    "baby-tracker/src/app/api/normal-check",
-    "baby-tracker/tsconfig.tsbuildinfo",
-    "baby-tracker/src/components/__tests__/RollingTimeline.test.tsx",
-    "baby-tracker/CLAUDE_API_AUDIT.md",
-    "baby-tracker/FEEDBACK_DONE.md",
-    "CLAUDE.md",
-    "baby-tracker/TIMELINE_TEST_PLAN.md",
-    "baby-tracker/src/components/__tests__",
-    "baby-tracker/jest.setup.js",
-    "baby-tracker/jest.config.js",
-    "baby-tracker/test-timeline-manually.md",
-    "baby-tracker/DATABASE_FIX_REQUIRED.md",
-    "baby-tracker/FIXES_COMPLETED.md",
-    "baby-tracker/COMPREHENSIVE_AUDIT_REPORT.md",
-    "baby-tracker/FIX_SUMMARY.md",
-    "baby-tracker/FIXES_APPLIED.md",
-    "baby-tracker/DASHBOARD_COMPLETE.md",
-    "baby-tracker/NHS_THRESHOLDS.md",
-    "baby-tracker/DEPLOYMENT_STATUS.md",
-    "baby-tracker/TEST_VOICE_INPUT.md",
-    "baby-tracker/node_modules/playwright-core/README.md",
-    "baby-tracker/node_modules/playwright/README.md",
-    "baby-tracker/node_modules/@tybys/wasm-util/README.md",
-    "baby-tracker/node_modules/@emnapi/core/README.md",
-    "baby-tracker/node_modules/@emnapi/runtime/README.md",
-    "baby-tracker/node_modules/@emnapi/wasi-threads/README.md",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/safari-na3_-uQk.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-nightly-Cp5nfeDT.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-beta-k3eOH_eK.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/assets/firefox-1bWoP6pv.svg",
     "baby-tracker/node_modules/playwright-core/lib/vite/traceViewer/playwright-logo.svg",
-    "baby-tracker/node_modules/playwright-core/lib/vite/recorder/playwright-logo.svg",
-    "baby-tracker/node_modules/playwright-core/lib/vite/dashboard/playwright-logo.svg",
-    "baby-tracker/node_modules/playwright-core/lib/tools/dashboard/appIcon.png"
+    "baby-tracker/node_modules/playwright-core/lib/vite/recorder/playwright-logo.svg"
   ]
 }

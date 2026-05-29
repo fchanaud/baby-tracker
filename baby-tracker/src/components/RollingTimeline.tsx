@@ -20,21 +20,21 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
     return () => clearInterval(interval);
   }, []);
 
-  // Calculate current 4-hour block (e.g., if 15:20, show 12:00–16:00)
+  // Calculate current 6-hour block (e.g., if 15:20, show 12:00–18:00)
   const getCurrentBlockStart = (timestamp: number) => {
     const date = new Date(timestamp);
     const hour = date.getHours();
-    const blockStart = Math.floor(hour / 4) * 4;
+    const blockStart = Math.floor(hour / 6) * 6;
     date.setHours(blockStart, 0, 0, 0);
     return date.getTime();
   };
 
-  // Calculate 4-hour window
+  // Calculate 6-hour window
   const { startTime, endTime, visibleLogs, nappyLogs } = useMemo(() => {
     const blockStart = getCurrentBlockStart(now);
-    const offsetMs = windowOffset * 4 * 60 * 60 * 1000;
+    const offsetMs = windowOffset * 6 * 60 * 60 * 1000;
     const start = blockStart + offsetMs;
-    const end = start + 4 * 60 * 60 * 1000;
+    const end = start + 6 * 60 * 60 * 1000;
 
     const visible = logs.filter(log => {
       if (log.log_type === 'note') return false;
@@ -61,10 +61,10 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
 
   // Check if there are activities in next/previous windows
   const { hasPrevious, hasNext } = useMemo(() => {
-    const prevWindowStart = startTime - 4 * 60 * 60 * 1000;
+    const prevWindowStart = startTime - 6 * 60 * 60 * 1000;
     const prevWindowEnd = startTime;
     const nextWindowStart = endTime;
-    const nextWindowEnd = endTime + 4 * 60 * 60 * 1000;
+    const nextWindowEnd = endTime + 6 * 60 * 60 * 1000;
 
     const hasPrev = logs.some(log => {
       const logTime = new Date(log.logged_at).getTime();
@@ -84,10 +84,10 @@ export default function RollingTimeline({ logs, onActivityTap }: RollingTimeline
     };
   }, [logs, startTime, endTime, now]);
 
-  // Generate hour labels for 4-hour window (5 labels: start, +1h, +2h, +3h, +4h)
+  // Generate hour labels for 6-hour window (7 labels: start, +1h, +2h, +3h, +4h, +5h, +6h)
   const timeLabels = useMemo(() => {
     const labels = [];
-    for (let i = 0; i <= 4; i++) {
+    for (let i = 0; i <= 6; i++) {
       const time = startTime + i * 60 * 60 * 1000;
       const date = new Date(time);
       const hour = date.getHours();

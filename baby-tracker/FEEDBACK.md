@@ -1,1 +1,0 @@
-delete all data for activities so I start with fresh dataset. Also, I want an easy way For Franklin only at the bottom of the page to use a test database environment with all exact same features so I can improve the app while it will be used in production. Production and test databases will be different

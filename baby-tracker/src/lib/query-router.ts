@@ -204,6 +204,30 @@ ${feedsEval.state === 'green' ? '✅ You\'re on track!' : feedsEval.state === 'a
     };
   }
 
+  // === DAILY SUMMARY QUERIES ===
+
+  // What happened today / during the day
+  if (normalized.match(/what (happened|happens|did happen) (today|during the day)/i) || normalized === 'what happened today') {
+    const feedCount = todayLogs.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle').length;
+    const nappyCount = todayLogs.filter(l => l.log_type === 'nappy').length;
+    const sleepMins = todayLogs.filter(l => l.log_type === 'sleep').reduce((sum, l) => sum + (l.duration_minutes || 0), 0);
+    const sleepHours = Math.floor(sleepMins / 60);
+    const sleepMinsRemainder = sleepMins % 60;
+
+    return {
+      type: 'simple',
+      answer: `**Today's Summary:**
+
+📊 **Feeds**: ${feedCount} total
+🧷 **Nappies**: ${nappyCount} changes
+😴 **Sleep**: ${sleepHours}h ${sleepMinsRemainder}m total
+
+${feedCount >= 8 ? '✅ On track with feeding' : '⚠️ Try to add more feeds today'}
+${nappyCount >= 6 ? '✅ Good nappy changes' : '⚠️ Keep logging nappy changes'}`,
+      needsAPI: false,
+    };
+  }
+
   // === COMPLEX QUERIES (requires Claude API) ===
 
   // Patterns, trends, "why" questions, comparisons, recommendations

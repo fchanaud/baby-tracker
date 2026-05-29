@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Identity } from '@/hooks/useIdentity';
-import { LogType, Side, NappyType, PooConsistency, Log } from '@/lib/types';
+import { LogType, Side, NappyType, PooConsistency, PooColor, Log } from '@/lib/types';
 import { getEnvironment } from '@/lib/supabase';
 import Toast from './Toast';
 
@@ -14,7 +14,7 @@ interface ActivityFormProps {
   todayLogs?: Log[];
 }
 
-type FormStep = 'type' | 'timing' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'stool-type' | 'note' | 'saving';
+type FormStep = 'type' | 'timing' | 'feed-type' | 'feed-timer' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'stool-type' | 'poo-color' | 'note' | 'saving';
 
 interface ToastState {
   message: string;
@@ -39,14 +39,33 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   const [side, setSide] = useState<Side | null>(null);
   const [nappyType, setNappyType] = useState<NappyType | null>(null);
   const [stoolType, setStoolType] = useState<PooConsistency | null>(null);
+  const [pooColor, setPooColor] = useState<PooColor | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [showPooGuide, setShowPooGuide] = useState(false);
+  const [durationHours, setDurationHours] = useState(0);
+  const [durationMinutes, setDurationMinutes] = useState(15);
   const [noteText, setNoteText] = useState('');
   const [pendingLogData, setPendingLogData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [customTime, setCustomTime] = useState<string | null>(null);
   const [showTimeInput, setShowTimeInput] = useState(false);
-  const [hoursAgo, setHoursAgo] = useState('1');
+  const [customDateTime, setCustomDateTime] = useState('');
+
+  // Timer effect (runs every second when timer is active)
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timerRunning) {
+      interval = setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerRunning]);
 
   // Calculate breastfeed side balance for today
   const breastfeedBalance = useMemo(() => {
@@ -79,13 +98,19 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     setSide(null);
     setNappyType(null);
     setStoolType(null);
+    setPooColor(null);
     setDuration(null);
     setNoteText('');
     setPendingLogData(null);
     setError(null);
     setCustomTime(null);
     setShowTimeInput(false);
-    setHoursAgo('1');
+    setCustomDateTime('');
+    setTimerRunning(false);
+    setTimerSeconds(0);
+    setShowPooGuide(false);
+    setDurationHours(0);
+    setDurationMinutes(15);
   };
 
   const goToNote = (logData: any) => {
@@ -107,6 +132,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           logged_at: customTime || new Date().toISOString(),
           needs_review: false,
           environment: getEnvironment(),
+          check_merge: true, // Flag to enable auto-merge logic in API
         }),
       });
 
@@ -231,21 +257,34 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     };
 
     const handleEarlierConfirm = () => {
-      const hours = parseFloat(hoursAgo);
-      if (!isNaN(hours) && hours > 0) {
-        const pastTime = new Date(Date.now() - hours * 60 * 60 * 1000);
-        setCustomTime(pastTime.toISOString());
+      if (customDateTime) {
+        // Validate date is within last 7 days
+        const selectedDate = new Date(customDateTime);
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-        // Route to next step
-        if (logType === 'breastfeed' || logType === 'bottle') {
-          setStep('feed-type');
-        } else if (logType === 'sleep') {
-          setStep('sleep-duration');
-        } else if (logType === 'nappy') {
-          setStep('nappy-type');
+        if (selectedDate >= sevenDaysAgo && selectedDate <= new Date()) {
+          setCustomTime(selectedDate.toISOString());
+
+          // Route to next step
+          if (logType === 'breastfeed' || logType === 'bottle') {
+            setStep('feed-type');
+          } else if (logType === 'sleep') {
+            setStep('sleep-duration');
+          } else if (logType === 'nappy') {
+            setStep('nappy-type');
+          }
+        } else {
+          setError('Please select a date within the last 7 days');
         }
       }
     };
+
+    // Calculate default date/time (e.g., 1 hour ago)
+    const defaultDateTime = new Date(Date.now() - 60 * 60 * 1000).toISOString().slice(0, 16);
+    // Calculate min date (7 days ago)
+    const minDateTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+    // Calculate max date (now)
+    const maxDateTime = new Date().toISOString().slice(0, 16);
 
     return (
       <div className="space-y-3">
@@ -257,6 +296,12 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
         </button>
 
         <h2 className="text-lg font-semibold text-gray-900 text-center">When did it happen?</h2>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p className="text-red-800 text-sm text-center">{error}</p>
+          </div>
+        )}
 
         {!showTimeInput ? (
           <div className="grid grid-cols-2 gap-3">
@@ -278,57 +323,42 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           </div>
         ) : (
           <div className="space-y-3 bg-gray-100 rounded-xl p-4">
-            <p className="text-sm text-gray-700 text-center font-medium">How many hours ago?</p>
+            <p className="text-sm text-gray-700 text-center font-medium">Select date and time (last 7 days)</p>
 
-            <div className="grid grid-cols-4 gap-2">
-              {['0.5', '1', '2', '3'].map(hours => (
-                <button
-                  key={hours}
-                  onClick={() => {
-                    setHoursAgo(hours);
-                    const h = parseFloat(hours);
-                    const pastTime = new Date(Date.now() - h * 60 * 60 * 1000);
-                    setCustomTime(pastTime.toISOString());
-                    handleEarlierConfirm();
-                  }}
-                  className="bg-white hover:bg-gray-200 active:scale-95 border border-gray-300 text-gray-900 rounded-xl py-4 transition-all font-semibold"
-                >
-                  {hours}h
-                </button>
-              ))}
-            </div>
+            <input
+              type="datetime-local"
+              value={customDateTime || defaultDateTime}
+              onChange={(e) => setCustomDateTime(e.target.value)}
+              min={minDateTime}
+              max={maxDateTime}
+              className="w-full bg-white border border-gray-300 rounded-xl p-4 text-gray-900 text-lg"
+            />
 
-            <div className="flex gap-2 items-center">
-              <input
-                type="number"
-                step="0.5"
-                min="0.5"
-                max="24"
-                value={hoursAgo}
-                onChange={(e) => setHoursAgo(e.target.value)}
-                placeholder="Hours"
-                className="flex-1 bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-center text-lg font-semibold"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setShowTimeInput(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl py-3 font-semibold min-h-[48px]"
+              >
+                Cancel
+              </button>
               <button
                 onClick={handleEarlierConfirm}
-                className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6 py-3 font-semibold min-h-[48px]"
+                className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-3 font-semibold min-h-[48px]"
               >
                 OK
               </button>
             </div>
-
-            <button
-              onClick={() => setShowTimeInput(false)}
-              className="w-full text-gray-600 hover:text-gray-900 text-sm min-h-[48px]"
-            >
-              Cancel
-            </button>
           </div>
         )}
 
         {customTime && !showTimeInput && (
           <p className="text-sm text-gray-600 text-center font-medium">
-            Time: {new Date(customTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+            Time: {new Date(customTime).toLocaleString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
           </p>
         )}
       </div>
@@ -352,7 +382,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setFeedType('breast');
-              setStep('feed-side');
+              setStep('feed-timer');
             }}
             className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -375,26 +405,73 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     );
   }
 
-  // Step 2b: Breast feed side
-  if (step === 'feed-side') {
-    // Smart defaults: predict next side based on last feed
-    const lastSide = typeof window !== 'undefined' ? localStorage.getItem('lastBreastfeedSide') : null;
-    const suggestedSide = lastSide === 'left' ? 'right' : lastSide === 'right' ? 'left' : 'left';
-    const defaultDuration = 15; // minutes
+  // Step 2a2: Breastfeed timer (full screen)
+  if (step === 'feed-timer') {
+    const formatTimer = (seconds: number) => {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    };
 
-    const handleQuickLog = () => {
-      setSide(suggestedSide as Side);
-      setDuration(defaultDuration);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('lastBreastfeedSide', suggestedSide);
-      }
-      goToNote({ log_type: 'breastfeed', side: suggestedSide, duration_minutes: defaultDuration });
+    const handleDone = () => {
+      setDuration(Math.floor(timerSeconds / 60)); // Convert to minutes
+      setTimerRunning(false);
+      setStep('feed-side');
     };
 
     return (
+      <div className="space-y-6">
+        <button
+          onClick={() => {
+            setTimerRunning(false);
+            setTimerSeconds(0);
+            setStep('feed-type');
+          }}
+          className="text-gray-600 hover:text-gray-900 flex items-center gap-1 min-h-[48px]"
+        >
+          ← Back
+        </button>
+
+        {/* Full screen timer display - iPhone 16e optimized */}
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-8 px-4 max-w-md mx-auto">
+          <h2 className="text-2xl font-semibold text-gray-900 text-center">Breastfeeding Timer</h2>
+
+          {/* Timer display - responsive font size */}
+          <div className="text-7xl sm:text-9xl font-mono font-bold text-pink-600 tracking-wider">
+            {formatTimer(timerSeconds)}
+          </div>
+
+          <p className="text-gray-600 text-lg text-center">
+            {timerRunning ? 'Timer running...' : 'Tap Start to begin'}
+          </p>
+
+          {/* Start/Done buttons */}
+          {!timerRunning ? (
+            <button
+              onClick={() => setTimerRunning(true)}
+              className="bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl px-12 py-6 text-2xl font-bold transition-all min-h-[80px] w-full max-w-[280px]"
+            >
+              ▶️ Start
+            </button>
+          ) : (
+            <button
+              onClick={handleDone}
+              className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl px-12 py-6 text-2xl font-bold transition-all min-h-[80px] w-full max-w-[280px]"
+            >
+              Done
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2b: Breast feed side
+  if (step === 'feed-side') {
+    return (
       <div className="space-y-3">
         <button
-          onClick={() => setStep('feed-type')}
+          onClick={() => setStep('feed-timer')}
           className="text-gray-600 hover:text-gray-900 flex items-center gap-1"
         >
           ← Back
@@ -429,22 +506,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           </div>
         )}
 
-        {/* Quick Log Button */}
-        <button
-          onClick={handleQuickLog}
-          className="w-full bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-700 hover:to-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[80px] flex items-center justify-center gap-3 shadow-lg border-2 border-pink-400"
-        >
-          <span className="text-3xl">⚡</span>
-          <div className="text-left">
-            <div className="text-xl font-bold">Quick Log: {suggestedSide.charAt(0).toUpperCase() + suggestedSide.slice(1)} - {defaultDuration}min</div>
-            <div className="text-sm text-pink-100">One tap to save</div>
-          </div>
-          <span className="text-3xl">✓</span>
-        </button>
-
-        <p className="text-sm text-gray-600 text-center">Or choose manually:</p>
-
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => {
               setSide('left');
@@ -466,25 +528,23 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             <span className="text-5xl">👉</span>
             <span className="text-lg font-semibold">Right</span>
           </button>
-
-          <button
-            onClick={() => {
-              setSide('both');
-              setStep('feed-duration');
-            }}
-            className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
-          >
-            <span className="text-5xl">👆</span>
-            <span className="text-lg font-semibold">Both</span>
-          </button>
         </div>
       </div>
     );
   }
 
-  // Step 2b2: Breast feed duration
+  // Step 2b2: Breast feed duration (if timer was skipped - now unused, always use timer)
   if (step === 'feed-duration') {
-    const commonDurations = [5, 10, 15, 20, 25, 30];
+    const handleSave = () => {
+      const totalMinutes = durationHours * 60 + durationMinutes;
+      if (totalMinutes > 0) {
+        setDuration(totalMinutes);
+        if (typeof window !== 'undefined' && side) {
+          localStorage.setItem('lastBreastfeedSide', side);
+        }
+        goToNote({ log_type: 'breastfeed', side, duration_minutes: totalMinutes });
+      }
+    };
 
     return (
       <div className="space-y-3">
@@ -495,25 +555,46 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           ← Back
         </button>
 
-        <h2 className="text-lg font-semibold text-gray-900 text-center">How long? (minutes)</h2>
+        <h2 className="text-lg font-semibold text-gray-900 text-center">How long?</h2>
 
-        <div className="grid grid-cols-3 gap-3">
-          {commonDurations.map(dur => (
-            <button
-              key={dur}
-              onClick={() => {
-                setDuration(dur);
-                if (typeof window !== 'undefined' && side) {
-                  localStorage.setItem('lastBreastfeedSide', side);
-                }
-                goToNote({ log_type: 'breastfeed', side, duration_minutes: dur });
-              }}
-              className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[100px] flex flex-col items-center justify-center gap-2"
-            >
-              <span className="text-3xl font-bold">{dur}</span>
-              <span className="text-sm">min</span>
-            </button>
-          ))}
+        {/* Duration pickers */}
+        <div className="bg-gray-100 rounded-xl p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Hours picker */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Hours</label>
+              <select
+                value={durationHours}
+                onChange={(e) => setDurationHours(Number(e.target.value))}
+                className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-center text-2xl font-semibold min-h-[48px]"
+              >
+                {[0, 1, 2, 3, 4].map(h => (
+                  <option key={h} value={h}>{h}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Minutes picker */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Minutes</label>
+              <select
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-center text-2xl font-semibold min-h-[48px]"
+              >
+                {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSave}
+            className="w-full bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl py-4 font-semibold text-lg min-h-[48px]"
+          >
+            Continue ({durationHours}h {durationMinutes}m)
+          </button>
         </div>
       </div>
     );
@@ -554,14 +635,15 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
 
   // Step 2c: Sleep duration
   if (step === 'sleep-duration') {
-    const commonDurations = [
-      { label: '30 min', value: 30 },
-      { label: '1 hour', value: 60 },
-      { label: '1.5 hrs', value: 90 },
-      { label: '2 hours', value: 120 },
-      { label: '2.5 hrs', value: 150 },
-      { label: '3 hours', value: 180 },
-    ];
+    const [hours, setHours] = useState(1);
+    const [minutes, setMinutes] = useState(0);
+
+    const handleSave = () => {
+      const totalMinutes = hours * 60 + minutes;
+      if (totalMinutes > 0) {
+        goToNote({ log_type: 'sleep', duration_minutes: totalMinutes });
+      }
+    };
 
     return (
       <div className="space-y-3">
@@ -574,33 +656,43 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
 
         <h2 className="text-lg font-semibold text-gray-900 text-center">How long?</h2>
 
-        <div className="grid grid-cols-3 gap-3">
-          {commonDurations.map(({ label, value }) => (
-            <button
-              key={value}
-              onClick={() => {
-                goToNote({ log_type: 'sleep', duration_minutes: value });
-              }}
-              className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[100px] flex flex-col items-center justify-center gap-2"
-            >
-              <span className="text-2xl font-bold">{label}</span>
-            </button>
-          ))}
+        {/* Duration pickers */}
+        <div className="bg-gray-100 rounded-xl p-4 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            {/* Hours picker */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Hours</label>
+              <select
+                value={hours}
+                onChange={(e) => setHours(Number(e.target.value))}
+                className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-center text-2xl font-semibold min-h-[48px]"
+              >
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(h => (
+                  <option key={h} value={h}>{h}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* 4+ hours - ask for custom input */}
+            {/* Minutes picker */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Minutes</label>
+              <select
+                value={minutes}
+                onChange={(e) => setMinutes(Number(e.target.value))}
+                className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-center text-2xl font-semibold min-h-[48px]"
+              >
+                {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <button
-            onClick={() => {
-              const hours = prompt('How many hours?');
-              if (hours && !isNaN(Number(hours))) {
-                const minutes = Math.round(Number(hours) * 60);
-                if (minutes > 0) {
-                  goToNote({ log_type: 'sleep', duration_minutes: minutes });
-                }
-              }
-            }}
-            className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[100px] flex flex-col items-center justify-center gap-2"
+            onClick={handleSave}
+            className="w-full bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-2xl py-4 font-semibold text-lg min-h-[48px]"
           >
-            <span className="text-2xl font-bold">4+ hrs</span>
+            Continue ({hours}h {minutes}m)
           </button>
         </div>
       </div>
@@ -675,7 +767,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setStoolType('normal');
-              goToNote({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'normal' });
+              setStep('poo-color');
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -686,7 +778,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setStoolType('soft');
-              goToNote({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'soft' });
+              setStep('poo-color');
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -697,7 +789,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setStoolType('liquid');
-              goToNote({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'liquid' });
+              setStep('poo-color');
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -705,6 +797,99 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             <span className="text-lg font-semibold">Liquid</span>
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Step 2f: Poo color (after stool-type)
+  if (step === 'poo-color') {
+    const colors: { name: PooColor; emoji: string; bg: string; concerning: boolean }[] = [
+      { name: 'yellow', emoji: '🟡', bg: 'bg-yellow-400', concerning: false },
+      { name: 'green', emoji: '🟢', bg: 'bg-green-500', concerning: false },
+      { name: 'brown', emoji: '🟤', bg: 'bg-amber-700', concerning: false },
+      { name: 'red', emoji: '🔴', bg: 'bg-red-500', concerning: true },
+      { name: 'black', emoji: '⚫', bg: 'bg-gray-900', concerning: true },
+      { name: 'white', emoji: '⚪', bg: 'bg-gray-100', concerning: true },
+      { name: 'gray', emoji: '🩶', bg: 'bg-gray-400', concerning: true },
+    ];
+
+    const handleColorSelect = (color: PooColor, concerning: boolean) => {
+      setPooColor(color);
+      if (concerning) {
+        // Show warning, then proceed to note
+        setTimeout(() => {
+          goToNote({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: stoolType, poo_color: color });
+        }, 100);
+      } else {
+        goToNote({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: stoolType, poo_color: color });
+      }
+    };
+
+    return (
+      <div className="space-y-3">
+        <button
+          onClick={() => setStep('stool-type')}
+          className="text-gray-600 hover:text-gray-900 flex items-center gap-1"
+        >
+          ← Back
+        </button>
+
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Poo color?</h2>
+          <button
+            onClick={() => setShowPooGuide(!showPooGuide)}
+            className="text-blue-600 hover:text-blue-700 bg-blue-50 rounded-full w-8 h-8 flex items-center justify-center font-bold min-h-[48px] min-w-[48px]"
+          >
+            ℹ️
+          </button>
+        </div>
+
+        {/* Poo guide popup */}
+        {showPooGuide && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+            <h3 className="font-semibold text-blue-900 text-center">NHS Baby Stool Guide</h3>
+            <div className="space-y-2 text-sm text-blue-900">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🟡🟢🟤</span>
+                <span><strong>Normal:</strong> Yellow, green, or brown stools are typical for babies</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔴⚫⚪🩶</span>
+                <span><strong>Concerning:</strong> Red, black, white, or gray may indicate a health issue</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPooGuide(false)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm font-semibold min-h-[48px]"
+            >
+              Got it
+            </button>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-3">
+          {colors.map(({ name, emoji, bg, concerning }) => (
+            <button
+              key={name}
+              onClick={() => handleColorSelect(name, concerning)}
+              className={`${bg} hover:opacity-90 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2 ${concerning ? 'ring-2 ring-red-500' : ''}`}
+            >
+              <span className="text-5xl">{emoji}</span>
+              <span className="text-lg font-semibold capitalize">{name}</span>
+              {concerning && (
+                <span className="text-xs bg-red-600 text-white px-2 py-1 rounded-full">⚠️</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {pooColor && colors.find(c => c.name === pooColor)?.concerning && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-red-800 text-sm text-center">
+              <strong>⚠️ Note:</strong> This color may indicate a health issue. Contact your healthcare provider.
+            </p>
+          </div>
+        )}
       </div>
     );
   }
@@ -717,6 +902,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           onClick={() => setStep(
             pendingLogData?.log_type === 'sleep' ? 'sleep-duration' :
             pendingLogData?.log_type === 'bottle' ? 'feed-amount' :
+            pendingLogData?.log_type === 'nappy' && pendingLogData?.poo_color ? 'poo-color' :
             pendingLogData?.log_type === 'nappy' && pendingLogData?.poo_consistency ? 'stool-type' :
             pendingLogData?.log_type === 'nappy' ? 'nappy-type' :
             'feed-duration'
