@@ -574,16 +574,14 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     );
   }
 
-  // Step 2b2: Breast feed duration (if timer was skipped - now unused, always use timer)
+  // Step 2b2: Breast feed duration (when Earlier is selected, skip timer)
   if (step === 'feed-duration') {
     const handleSave = () => {
       const totalMinutes = durationHours * 60 + durationMinutes;
       if (totalMinutes > 0) {
         setDuration(totalMinutes);
-        if (typeof window !== 'undefined' && side) {
-          localStorage.setItem('lastBreastfeedSide', side);
-        }
-        goToNote({ log_type: 'breastfeed', side, duration_minutes: totalMinutes });
+        // Go to side selection after setting duration
+        setStep('feed-side');
       }
     };
 
