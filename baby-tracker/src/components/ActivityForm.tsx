@@ -329,7 +329,14 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
               <input
                 type="datetime-local"
                 value={customDateTime || defaultDateTime}
-                onChange={(e) => setCustomDateTime(e.target.value)}
+                onChange={(e) => {
+                  const selected = new Date(e.target.value);
+                  if (selected > new Date()) {
+                    setCustomDateTime(new Date().toISOString().slice(0, 16));
+                  } else {
+                    setCustomDateTime(e.target.value);
+                  }
+                }}
                 min={minDateTime}
                 max={maxDateTime}
                 className="w-full bg-white border border-gray-300 rounded-xl p-3 text-gray-900 text-base max-w-full"
@@ -596,7 +603,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             onClick={handleSave}
             className="w-full bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl py-4 font-semibold text-lg min-h-[48px]"
           >
-            Continue ({durationHours}h {durationMinutes}m)
+            Continue
           </button>
         </div>
       </div>
@@ -695,7 +702,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             onClick={handleSave}
             className="w-full bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-2xl py-4 font-semibold text-lg min-h-[48px]"
           >
-            Continue ({hours}h {minutes}m)
+            Continue
           </button>
         </div>
       </div>
@@ -915,7 +922,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           ← Back
         </button>
 
-        <h2 className="text-lg font-semibold text-gray-900 text-center">Add a note? <span className="text-gray-500 font-normal text-base">(optional)</span></h2>
+        <h2 className="text-lg font-semibold text-gray-900 text-center">Add a note?</h2>
 
         <textarea
           value={noteText}
