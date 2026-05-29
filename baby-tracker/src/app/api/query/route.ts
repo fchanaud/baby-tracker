@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabase } from '@/lib/supabase';
 import { NHS_THRESHOLDS } from '@/lib/nhs-thresholds';
+import { routeQuery } from '@/lib/query-router';
+import type { Log } from '@/lib/types';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -20,55 +22,6 @@ setInterval(() => {
     }
   });
 }, 10 * 60 * 1000);
-
-// Pre-calculated answers for common queries
-function tryPreCalculatedAnswer(question: string, todayLogs: any[], yesterdayLogs: any[]): string | null {
-  const normalized = question.toLowerCase().trim();
-
-  // Today's counts
-  if (normalized.match(/how many feeds? (today|so far)/i) || normalized === 'how many feeds today') {
-    const count = todayLogs.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle').length;
-    return `Today you've logged ${count} feed${count === 1 ? '' : 's'}. The NHS recommends 8-12 feeds per day for newborns.`;
-  }
-
-  if (normalized.match(/how many napp(y|ies) (today|so far)/i) || normalized === 'how many nappies today') {
-    const count = todayLogs.filter(l => l.log_type === 'nappy').length;
-    const wet = todayLogs.filter(l => l.log_type === 'nappy' && (l.nappy_type === 'wet' || l.nappy_type === 'both')).length;
-    return `Today you've logged ${count} nappy change${count === 1 ? '' : 's'} (${wet} wet). The NHS recommends at least 6 wet nappies per day after day 5.`;
-  }
-
-  if (normalized.match(/(total|how much) sleep (today|so far)/i) || normalized === 'total sleep today') {
-    const mins = todayLogs.filter(l => l.log_type === 'sleep')
-      .reduce((sum, l) => sum + (l.duration_minutes || 0), 0);
-    const hours = Math.floor(mins / 60);
-    const minutes = mins % 60;
-    return `Today's total sleep: ${hours}h ${minutes}m. Newborns typically need 14-19 hours of sleep per day.`;
-  }
-
-  // Yesterday's counts
-  if (normalized.match(/how many feeds? yesterday/i)) {
-    const count = yesterdayLogs.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle').length;
-    return `Yesterday you logged ${count} feed${count === 1 ? '' : 's'}.`;
-  }
-
-  if (normalized.match(/how many napp(y|ies) yesterday/i)) {
-    const count = yesterdayLogs.filter(l => l.log_type === 'nappy').length;
-    return `Yesterday you logged ${count} nappy change${count === 1 ? '' : 's'}.`;
-  }
-
-  // Am I on track
-  if (normalized.match(/am i on track|doing (ok|okay|well)/i)) {
-    const feeds = todayLogs.filter(l => l.log_type === 'breastfeed' || l.log_type === 'bottle').length;
-    const nappies = todayLogs.filter(l => l.log_type === 'nappy' && (l.nappy_type === 'wet' || l.nappy_type === 'both')).length;
-
-    const feedStatus = feeds >= 8 ? '✓' : feeds >= 6 ? '~' : '!';
-    const nappyStatus = nappies >= 6 ? '✓' : nappies >= 4 ? '~' : '!';
-
-    return `Today's progress:\n• Feeds: ${feeds} ${feedStatus} (target 8-12)\n• Wet nappies: ${nappies} ${nappyStatus} (target 6+)\n\n${feeds >= 8 && nappies >= 6 ? 'You\'re doing great! Keep it up.' : 'Try to add a few more feeds/nappy changes if possible.'}`;
-  }
-
-  return null; // Not a pre-calculated query
-}
 
 // Optimize log data - only send relevant fields
 function optimizeLogs(logs: any[]) {
@@ -139,12 +92,23 @@ export async function POST(request: NextRequest) {
       return logDate >= yesterdayStart && logDate < todayStart;
     });
 
-    // Try pre-calculated answer first (optimization #3)
-    const preCalculated = tryPreCalculatedAnswer(question, todayLogs, yesterdayLogs);
-    if (preCalculated) {
+    // Fetch baby profile for age-based NHS rules
+    const { data: profileData } = await supabase
+      .from('baby_profile')
+      .select('*')
+      .single();
+
+    const dateOfBirth = (profileData as any)?.date_of_birth as string | undefined;
+
+    // Route query to most efficient handler
+    const routeResult = routeQuery(question, todayLogs as Log[], logs as Log[], dateOfBirth);
+
+    // If answerable locally (simple or NHS-based), return immediately
+    if (!routeResult.needsAPI && routeResult.answer) {
       return NextResponse.json({
         success: true,
-        answer: preCalculated,
+        answer: routeResult.answer,
+        queryType: routeResult.type, // For analytics
       });
     }
 
