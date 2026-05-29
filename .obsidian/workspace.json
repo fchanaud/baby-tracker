@@ -253,12 +253,13 @@
             "state": {
               "type": "outline",
               "state": {
+                "file": "SPECS.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline"
+              "title": "Outline of SPECS"
             }
           }
         ],
@@ -280,7 +281,7 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "3a4404d61509c4b2",
+  "active": "b1f5735953caaf9f",
   "lastOpenFiles": [
     "SPECS.md",
     "CLAUDE.md",

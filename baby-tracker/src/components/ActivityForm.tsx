@@ -42,6 +42,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   const [pooColor, setPooColor] = useState<PooColor | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [timerRunning, setTimerRunning] = useState(false);
+  const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [showPooGuide, setShowPooGuide] = useState(false);
   const [durationHours, setDurationHours] = useState(0);
@@ -56,18 +57,20 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   const [showTimeInput, setShowTimeInput] = useState(false);
   const [customDateTime, setCustomDateTime] = useState('');
 
-  // Timer effect (runs every second when timer is active)
+  // Timer effect (calculates elapsed time from start timestamp)
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (timerRunning) {
+    if (timerRunning && timerStartTime) {
+      // Update display every second based on actual elapsed time
       interval = setInterval(() => {
-        setTimerSeconds(prev => prev + 1);
+        const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+        setTimerSeconds(elapsed);
       }, 1000);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [timerRunning]);
+  }, [timerRunning, timerStartTime]);
 
   // Calculate breastfeed side balance for last 6 hours
   const breastfeedBalance = useMemo(() => {
@@ -117,6 +120,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     setShowTimeInput(false);
     setCustomDateTime('');
     setTimerRunning(false);
+    setTimerStartTime(null);
     setTimerSeconds(0);
     setShowPooGuide(false);
     setDurationHours(0);
@@ -459,6 +463,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
         <button
           onClick={() => {
             setTimerRunning(false);
+            setTimerStartTime(null);
             setTimerSeconds(0);
             setStep('feed-type');
           }}
@@ -483,7 +488,10 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           {/* Start/Done buttons */}
           {!timerRunning ? (
             <button
-              onClick={() => setTimerRunning(true)}
+              onClick={() => {
+                setTimerStartTime(Date.now());
+                setTimerRunning(true);
+              }}
               className="bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl px-12 py-6 text-2xl font-bold transition-all min-h-[80px] w-full max-w-[280px]"
             >
               ▶️ Start
