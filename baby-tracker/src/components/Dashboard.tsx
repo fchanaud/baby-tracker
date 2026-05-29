@@ -230,6 +230,13 @@ export default function Dashboard() {
 
         {/* Recent Activity Feed */}
         <RecentLogs logs={todayLogs} />
+
+        {/* Environment Toggle (Franklin only) — bottom of page content */}
+        {identity === 'Franklin' && (
+          <div className="flex justify-center py-6">
+            <EnvironmentToggle identity={identity} />
+          </div>
+        )}
       </div>
 
       {/* Normal Check Answer Sheet */}
@@ -238,13 +245,6 @@ export default function Dashboard() {
           answer={normalCheckAnswer}
           onClose={() => setNormalCheckAnswer(null)}
         />
-      )}
-
-      {/* Environment Toggle (Franklin only) — sticky bottom bar */}
-      {identity === 'Franklin' && (
-        <div className="sticky bottom-0 flex justify-center py-3 bg-gray-900/80 backdrop-blur-sm">
-          <EnvironmentToggle identity={identity} />
-        </div>
       )}
     </div>
   );
