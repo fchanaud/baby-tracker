@@ -10,17 +10,17 @@ interface EnvironmentToggleProps {
 export default function EnvironmentToggle({ identity }: EnvironmentToggleProps) {
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
 
-  // Only show for Franklin
-  if (identity !== 'Franklin') {
-    return null;
-  }
-
   useEffect(() => {
     const stored = localStorage.getItem('baby-tracker-environment') as 'production' | 'test' | null;
     if (stored) {
       setEnvironment(stored);
     }
   }, []);
+
+  // Only show for Franklin
+  if (identity !== 'Franklin') {
+    return null;
+  }
 
   const toggleEnvironment = () => {
     const newEnv = environment === 'production' ? 'test' : 'production';
