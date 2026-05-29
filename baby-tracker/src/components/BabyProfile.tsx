@@ -1,26 +1,26 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useIdentity } from '@/hooks/useIdentity';
 import { useBabyProfile } from '@/hooks/useBabyProfile';
+import IdentityPicker from './IdentityPicker';
+import Navbar from './Navbar';
 
 export default function BabyProfile() {
+  const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
   const { profile, saveProfile } = useBabyProfile();
-  const [name, setName] = useState('');
-  const [sex, setSex] = useState<'male' | 'female' | ''>('');
   const [dateOfBirth, setDateOfBirth] = useState('');
-  const [currentWeight, setCurrentWeight] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   // Load existing profile
   useEffect(() => {
-    if (profile) {
-      setName(profile.name || '');
-      setSex(profile.sex || '');
-      setDateOfBirth(profile.dateOfBirth || '');
-      setCurrentWeight(profile.currentWeight?.toString() || '');
+    if (profile?.dateOfBirth) {
+      setDateOfBirth(profile.dateOfBirth);
     }
   }, [profile]);
 
-  // Calculate age
+  // Calculate age in days and months
   const age = useMemo(() => {
     if (!dateOfBirth) return null;
 
@@ -29,88 +29,70 @@ export default function BabyProfile() {
     const diffMs = now.getTime() - dob.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    const days = diffDays;
-    const weeks = Math.floor(diffDays / 7);
-    const months = Math.floor(diffDays / 30.44); // Average month length
+    // More accurate months calculation
+    const years = now.getFullYear() - dob.getFullYear();
+    const months = now.getMonth() - dob.getMonth();
+    const totalMonths = years * 12 + months;
 
-    return { days, weeks, months };
+    return { days: diffDays, months: totalMonths };
   }, [dateOfBirth]);
 
-  const handleSave = () => {
-    saveProfile({
-      name: name || undefined,
-      sex: sex || undefined,
-      dateOfBirth: dateOfBirth || undefined,
-      currentWeight: currentWeight ? parseFloat(currentWeight) : undefined,
-    });
+  const handleSave = async () => {
+    if (!dateOfBirth) {
+      setSaveMessage('Please enter a date of birth');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveMessage('');
+
+    try {
+      await saveProfile({
+        name: 'Victoire', // Fixed name
+        dateOfBirth,
+      });
+      setSaveMessage('✓ Profile saved');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error) {
+      setSaveMessage('Failed to save');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-3 sm:px-4 py-3 sm:py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between max-w-2xl mx-auto gap-2">
-          <h1 className="text-lg sm:text-2xl font-bold truncate">👶 Baby Profile</h1>
-          <a
-            href="/"
-            className="text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap min-h-[48px] flex items-center px-2"
-          >
-            ← Dashboard
-          </a>
+  // Show identity picker if not set
+  if (identityLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <div className="text-4xl mb-4">👶</div>
+          <p className="text-gray-400">Loading...</p>
         </div>
       </div>
+    );
+  }
+
+  if (!identity) {
+    return <IdentityPicker onSelect={setIdentity} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100 pb-20">
+      <Navbar identity={identity} onSwitchIdentity={() => setIdentity(null)} />
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Profile Card */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
-          {/* Name */}
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Baby's Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Victoire"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-            />
-          </div>
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* Header Card */}
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 text-center">
+          <div className="text-6xl mb-4">👶</div>
+          <h2 className="text-3xl font-bold text-gray-100">Victoire</h2>
+          <p className="text-gray-400 text-sm mt-2">Baby's Profile</p>
+        </div>
 
-          {/* Sex */}
+        {/* Date of Birth */}
+        <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Sex
-            </label>
-            <div className="flex gap-3 sm:gap-4">
-              <button
-                onClick={() => setSex('female')}
-                className={`flex-1 px-3 sm:px-4 py-3 rounded-lg border-2 font-medium transition-all min-h-[48px] ${
-                  sex === 'female'
-                    ? 'border-pink-500 bg-pink-50 text-pink-700'
-                    : 'border-gray-300 text-gray-600 hover:border-pink-300'
-                }`}
-              >
-                👧 Female
-              </button>
-              <button
-                onClick={() => setSex('male')}
-                className={`flex-1 px-3 sm:px-4 py-3 rounded-lg border-2 font-medium transition-all min-h-[48px] ${
-                  sex === 'male'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-300 text-gray-600 hover:border-blue-300'
-                }`}
-              >
-                👦 Male
-              </button>
-            </div>
-          </div>
-
-          {/* Date of Birth */}
-          <div>
-            <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="dob" className="block text-sm font-medium text-gray-400 mb-2">
               Date of Birth
             </label>
             <input
@@ -118,83 +100,62 @@ export default function BabyProfile() {
               type="date"
               value={dateOfBirth}
               onChange={(e) => setDateOfBirth(e.target.value)}
-              className="w-full px-3 sm:px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg max-w-full"
-              style={{ maxWidth: '100%' }}
-            />
-          </div>
-
-          {/* Current Weight */}
-          <div>
-            <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-2">
-              Current Weight (kg)
-            </label>
-            <input
-              id="weight"
-              type="number"
-              step="0.01"
-              value={currentWeight}
-              onChange={(e) => setCurrentWeight(e.target.value)}
-              placeholder="3.5"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
+              className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-100 text-lg"
             />
           </div>
 
           {/* Save Button */}
           <button
             onClick={handleSave}
-            className="w-full px-6 py-4 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 active:scale-95 transition-all min-h-[48px]"
+            disabled={isSaving || !dateOfBirth}
+            className="w-full px-6 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold rounded-lg active:scale-95 transition-all min-h-[48px]"
           >
-            Save Profile
+            {isSaving ? 'Saving...' : 'Save Date of Birth'}
           </button>
+
+          {saveMessage && (
+            <p className={`text-center text-sm ${saveMessage.startsWith('✓') ? 'text-green-400' : 'text-red-400'}`}>
+              {saveMessage}
+            </p>
+          )}
         </div>
 
         {/* Age Display */}
         {age && (
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6">
-            <h2 className="text-lg font-bold text-purple-900 mb-4">Age</h2>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-700">{age.days}</div>
-                <div className="text-sm text-purple-600 mt-1">Days</div>
+          <div className="bg-gradient-to-br from-purple-900 to-pink-900 border border-purple-700 rounded-xl p-6">
+            <h2 className="text-lg font-bold text-purple-100 mb-4 text-center">Victoire's Age</h2>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center bg-purple-800 bg-opacity-50 rounded-xl py-4">
+                <div className="text-4xl font-bold text-purple-100">{age.days}</div>
+                <div className="text-sm text-purple-300 mt-2">Days old</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-700">{age.weeks}</div>
-                <div className="text-sm text-purple-600 mt-1">Weeks</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-700">{age.months}</div>
-                <div className="text-sm text-purple-600 mt-1">Months</div>
+              <div className="text-center bg-pink-800 bg-opacity-50 rounded-xl py-4">
+                <div className="text-4xl font-bold text-pink-100">{age.months}</div>
+                <div className="text-sm text-pink-300 mt-2">Months old</div>
               </div>
             </div>
           </div>
         )}
 
         {/* Summary */}
-        {name && dateOfBirth && (
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Summary</h2>
-            <div className="space-y-2 text-gray-700">
-              <p className="break-words">
-                <span className="font-semibold">Name:</span> {name}
+        {dateOfBirth && (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h2 className="text-lg font-bold text-gray-100 mb-3">Summary</h2>
+            <div className="space-y-2 text-gray-300">
+              <p>
+                <span className="font-semibold text-gray-400">Name:</span> Victoire
               </p>
-              {sex && (
-                <p className="break-words">
-                  <span className="font-semibold">Sex:</span> {sex === 'female' ? 'Female' : 'Male'}
-                </p>
-              )}
-              <p className="break-words overflow-wrap-anywhere">
-                <span className="font-semibold block sm:inline">Born:</span>{' '}
-                <span className="block sm:inline">
-                  {new Date(dateOfBirth).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </span>
+              <p>
+                <span className="font-semibold text-gray-400">Born:</span>{' '}
+                {new Date(dateOfBirth).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
               </p>
-              {currentWeight && (
-                <p className="break-words">
-                  <span className="font-semibold">Weight:</span> {currentWeight} kg
+              {age && (
+                <p>
+                  <span className="font-semibold text-gray-400">Age:</span> {age.days} days ({age.months} months)
                 </p>
               )}
             </div>

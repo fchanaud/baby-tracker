@@ -15,7 +15,9 @@ export default function Navbar({ identity, onSwitchIdentity }: NavbarProps) {
   return (
     <div className="bg-gray-800 border-b border-gray-700 px-4 py-4 sticky top-0 z-10">
       <div className="flex items-center justify-between max-w-2xl mx-auto mb-3">
-        <h1 className="text-2xl font-bold">👶 Baby Tracker</h1>
+        <Link href="/profile" className="text-2xl font-bold hover:text-blue-400 transition-colors">
+          👶 Baby Tracker
+        </Link>
         <button
           onClick={onSwitchIdentity}
           className="text-sm text-gray-400 hover:text-gray-200 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors min-h-[48px]"
