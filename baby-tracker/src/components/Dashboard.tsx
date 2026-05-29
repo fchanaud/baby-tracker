@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLogs } from '@/hooks/useLogs';
 import { useBabyProfile } from '@/hooks/useBabyProfile';
+import { getEnvironment } from '@/lib/supabase';
 import IdentityPicker from './IdentityPicker';
 import ActivityForm from './ActivityForm';
 import ActivityButtons from './ActivityButtons';
@@ -108,6 +109,7 @@ export default function Dashboard() {
       const response = await fetch('/api/normal-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ environment: getEnvironment() }),
       });
 
       const result = await response.json();

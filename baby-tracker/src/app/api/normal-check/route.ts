@@ -24,15 +24,17 @@ setInterval(() => {
 
 export async function POST(request: NextRequest) {
   try {
+    const { environment } = await request.json();
+    const env = environment || 'production';
+
     // Fetch today's logs (filtered by environment)
-    const environment = getEnvironment();
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
     const { data: logs, error } = await supabase
       .from('logs')
       .select('*')
-      .eq('environment', environment)
+      .eq('environment', env)
       .gte('logged_at', todayStart.toISOString())
       .order('logged_at', { ascending: false })
       .limit(200) as { data: Log[] | null; error: any };

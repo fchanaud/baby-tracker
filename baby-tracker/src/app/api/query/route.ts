@@ -38,7 +38,7 @@ function optimizeLogs(logs: any[]) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { question } = await request.json();
+    const { question, environment } = await request.json();
 
     if (!question || typeof question !== 'string') {
       return NextResponse.json(
@@ -48,14 +48,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch last 7 days of logs for context (filtered by environment)
-    const environment = getEnvironment();
+    const env = environment || 'production';
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const { data: logs, error } = await supabase
       .from('logs')
       .select('*')
-      .eq('environment', environment)
+      .eq('environment', env)
       .gte('logged_at', sevenDaysAgo.toISOString())
       .order('logged_at', { ascending: false })
       .limit(500);

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
+import { getEnvironment } from '@/lib/supabase';
 import IdentityPicker from './IdentityPicker';
 import Navbar from './Navbar';
 
@@ -21,7 +22,10 @@ export default function Insights() {
       const response = await fetch('/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: question.trim() }),
+        body: JSON.stringify({
+          question: question.trim(),
+          environment: getEnvironment()
+        }),
       });
 
       const result = await response.json();

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getEnvironment } from '@/lib/supabase';
 
 interface ReportsModalProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ export default function ReportsModal({ isOpen, onClose }: ReportsModalProps) {
       const response = await fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, environment: getEnvironment() }),
       });
 
       if (!response.ok) {

@@ -51,7 +51,7 @@
                   },
                   "pinned": true,
                   "icon": "terminal",
-                  "title": "Terminal: ✳ Fix env toggle button position on home page"
+                  "title": "Terminal: ⠂ Fix env toggle button position on home page"
                 }
               }
             ]
@@ -280,8 +280,9 @@
       "terminal:Open terminal": false
     }
   },
-  "active": "3a4404d61509c4b2",
+  "active": "faa0a82c7bfcfe40",
   "lastOpenFiles": [
+    "baby-tracker/supabase/migrations/add_poo_color.sql",
     "CLAUDE.md",
     "baby-tracker/CLAUDE.md",
     "Screenshot 2026-05-29 at 14.42.26.png",

@@ -4,7 +4,8 @@ import { supabase, getEnvironment } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json();
+    const { query, environment } = await request.json();
+    const env = environment || 'production';
 
     if (!query) {
       return NextResponse.json(
@@ -14,14 +15,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch all logs from last 30 days (filtered by environment)
-    const environment = getEnvironment();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const { data: logs, error } = await supabase
       .from('logs')
       .select('*')
-      .eq('environment', environment)
+      .eq('environment', env)
       .gte('logged_at', thirtyDaysAgo.toISOString())
       .order('logged_at', { ascending: false })
       .limit(500);
