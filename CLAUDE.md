@@ -1,77 +1,62 @@
-# Claude Code Instructions
+## Specs workflow
 
-## Environment: Obsidian Vault
+1. Franklin writes all comments and change requests in SPECS.md
+   at the project root — written naturally, as spoken or dictated,
+   no need to structure it.
 
-This working directory is an **Obsidian vault**. You have full access to the Obsidian environment and should use all available methods to work with it efficiently.
+2. When told "action SPECS.md" or "execute feedback.md" or "execute specs":
+   
+   **Phase 1: Deep Discovery Interview**
+   - Read SPECS.md in full
+   - **ALWAYS use AskUserQuestion tool** to conduct an in-depth interview
+   - Ask non-obvious, probing questions about:
+     * **UX/UI Details**: Layout, positioning, styling, responsive behavior, animations
+     * **User Flow**: Step-by-step journey, edge cases, error states, loading states
+     * **Data Model**: What data is stored, where, format, relationships
+     * **Business Logic**: Validation rules, calculations, conditions, thresholds
+     * **Integration Points**: Which APIs/components interact, data flow between them
+     * **Testing Strategy**: How to verify success, what edge cases to test
+     * **Performance**: Expected load, caching needs, optimization concerns
+     * **Accessibility**: Mobile-first considerations, tap targets, keyboard nav
+   - **Continue interviewing** until you have a complete picture:
+     * Ask 3-5 questions per round using AskUserQuestion
+     * After Franklin answers, ask follow-up questions if gaps remain
+     * Do NOT skip this phase even for "simple" requests
+     * Stop only when you can confidently write a detailed implementation plan
+   
+   **Phase 2: Prompt Rewrite**
+   - Synthesize all interview answers into a structured prompt with:
+     * **Goal**: Clear 1-2 sentence objective
+     * **Context**: Why this matters, what problem it solves
+     * **User Stories**: "As a [user], I want [feature] so that [benefit]"
+     * **Technical Approach**: Architecture decisions, files to modify, data flow
+     * **Success Criteria**: Measurable outcomes, acceptance tests
+     * **Edge Cases**: Error handling, validation, boundary conditions
+     * **Constraints**: Performance, compatibility, security considerations
+   - Show the rewritten prompt to Franklin and wait for approval
+   - If Franklin says "looks good" or "go ahead", proceed to Phase 3
+   - If Franklin requests changes, update and confirm again
 
-### Obsidian CLI Access
+3. **Phase 3: Implementation**
+   Work through every item in the approved prompt sequentially.
+   Confirm what was done and the success criteria met before 
+   moving to the next item.
 
-- **Full CLI Access**: You have unrestricted access to interact with Obsidian via command-line tools
-- **Direct File Manipulation**: All Obsidian notes are Markdown files - read/write them directly for maximum efficiency
-- **macOS Integration**: Use `open` command to launch files in Obsidian app when needed
+4. **Phase 4: Verification**
+   Before marking work as complete:
+   - Test each feature in the running app (local dev server)
+   - Verify all functionality works as expected
+   - Fix any bugs discovered during testing
+   - Commit changes only when verified working
+   - Deploy to Vercel and verify deployment succeeds (per Deployment Workflow above)
+   - Do NOT proceed until all features are tested and deployed
 
-### Efficient Obsidian Workflows
+5. **Phase 5: Cleanup**
+   When ALL items are complete, tested, and deployed:
+   - Clear SPECS.md entirely and any screenshot uploaded also
+   - Confirm to Franklin that SPECS.md has been cleared
 
-#### 1. File Operations
-- **Create notes**: Use `Write` tool to create `.md` files
-- **Edit notes**: Use `Edit` tool for modifications
-- **Read notes**: Use `Read` tool to view contents
-- **Search vault**: Use `grep` or `find` via Bash to search across all notes
-
-#### 2. Obsidian Conventions
-- **Wikilinks**: Use `[[Note Name]]` syntax for internal links
-- **Tags**: Use `#tag` or frontmatter tags
-- **Frontmatter**: YAML metadata at the top of notes
-- **Folders**: Organize notes in subdirectories as needed
-
-#### 3. Vault Structure Access
-```bash
-# Search all notes for a term
-grep -r "search term" . --include="*.md"
-
-# Find notes by name
-find . -name "*.md" -type f
-
-# List all tags used
-grep -roh "#[a-zA-Z0-9_-]*" . --include="*.md" | sort -u
-
-# Open a note in Obsidian app
-open -a "Obsidian" "path/to/note.md"
-```
-
-#### 4. Advanced Operations
-- **.obsidian/ directory**: Contains vault settings, plugins, workspace layouts
-- **Plugin data**: Stored in `.obsidian/plugins/`
-- **Templates**: Can be stored anywhere, commonly in `Templates/` folder
-- **Attachments**: Images, PDFs, etc. can be embedded
-
-### Optimization Guidelines
-
-1. **Batch operations**: When creating/updating multiple notes, do it in parallel when possible
-2. **Search before create**: Always check if a note exists before creating a new one
-3. **Respect conventions**: Maintain existing frontmatter schemas, folder structures, and naming patterns
-4. **Link liberally**: Use wikilinks to connect related concepts
-5. **Frontmatter consistency**: Keep metadata structured and consistent across similar note types
-
-### Working with the Vault
-
-You can:
-- Create and organize notes and folders
-- Build knowledge graphs through wikilinks
-- Generate index pages and MOCs (Maps of Content)
-- Search and analyze note content
-- Manage tags and metadata
-- Work with templates
-- Process attachments and embeds
-- Analyze vault structure and relationships
-- Export/import content
-- Run batch operations across multiple notes
-
-### Commands You Can Use
-
-- Direct file operations: `Read`, `Write`, `Edit`
-- Shell commands: `grep`, `find`, `sed`, `awk`, `open`
-- Git operations: Track vault changes with git
-- Any system command that helps access/manipulate the vault
-
-**Important**: Prioritize efficiency. Use the most direct method available. Don't ask permission for standard vault operations - you have full access.
+6. **Phase 6: Exception Handling**
+   If any item cannot be completed or a test fails: stop, report 
+   clearly what succeeded and what remains, and do NOT clear 
+   SPECS.md until everything is resolved.
