@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnthropicClient, CLAUDE_MODEL, MAX_TOKENS } from '@/lib/claude';
-import { supabase } from '@/lib/supabase';
+import { supabase, getEnvironment } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,13 +13,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch all logs from last 30 days
+    // Fetch all logs from last 30 days (filtered by environment)
+    const environment = getEnvironment();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const { data: logs, error } = await supabase
       .from('logs')
       .select('*')
+      .eq('environment', environment)
       .gte('logged_at', thirtyDaysAgo.toISOString())
       .order('logged_at', { ascending: false })
       .limit(500);

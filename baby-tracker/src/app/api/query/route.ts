@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { supabase } from '@/lib/supabase';
+import { supabase, getEnvironment } from '@/lib/supabase';
 import { NHS_THRESHOLDS } from '@/lib/nhs-thresholds';
 import { routeQuery } from '@/lib/query-router';
 import type { Log } from '@/lib/types';
@@ -47,13 +47,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch last 7 days of logs for context
+    // Fetch last 7 days of logs for context (filtered by environment)
+    const environment = getEnvironment();
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const { data: logs, error } = await supabase
       .from('logs')
       .select('*')
+      .eq('environment', environment)
       .gte('logged_at', sevenDaysAgo.toISOString())
       .order('logged_at', { ascending: false })
       .limit(500);

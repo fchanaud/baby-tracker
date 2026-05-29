@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { supabase } from '@/lib/supabase';
+import { supabase, getEnvironment } from '@/lib/supabase';
 import { NHS_THRESHOLDS } from '@/lib/nhs-thresholds';
 import type { Log } from '@/lib/types';
 
@@ -24,13 +24,15 @@ setInterval(() => {
 
 export async function POST(request: NextRequest) {
   try {
-    // Fetch today's logs
+    // Fetch today's logs (filtered by environment)
+    const environment = getEnvironment();
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
     const { data: logs, error } = await supabase
       .from('logs')
       .select('*')
+      .eq('environment', environment)
       .gte('logged_at', todayStart.toISOString())
       .order('logged_at', { ascending: false })
       .limit(200) as { data: Log[] | null; error: any };
