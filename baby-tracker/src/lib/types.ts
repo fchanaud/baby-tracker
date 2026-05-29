@@ -42,16 +42,6 @@ export interface ParsedLog {
   needs_review?: boolean;
 }
 
-// Alert types
-export type AlertType = 'no_feed' | 'short_feed' | 'low_nappy_count' | 'side_imbalance' | 'urgent';
-export type AlertSeverity = 'warning' | 'info';
-
-export interface Alert {
-  type: AlertType;
-  message: string;
-  severity: AlertSeverity;
-}
-
 // Dashboard metrics
 export interface DashboardMetrics {
   feedsToday: number;

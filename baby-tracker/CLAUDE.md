@@ -12,20 +12,17 @@ Baby tracking app for sleep-deprived parents.
 - Test on iPhone 16e specifically
 
 ## NHS-Based Health Logic (Non-Diagnostic)
-- Alerts based on NHS newborn guidance patterns
 - Wet nappies: ≥6/day (after ~day 5) is normal baseline
 - Feeding is on-demand; frequent feeding is normal
-- Sleep is NOT used for alerts in newborn phase
 - Weight must be interpreted over time, not in isolation
 - **Never provide medical diagnosis**, only pattern-based indicators
 
 ## Architecture Rules
 - Supabase is the source of truth
 - Claude API is used ONLY for:
-  - Natural language parsing → structured logs
-  - Report generation
+  - Report generation (Insights page)
+  - Normal check (daily health summary)
 - **Business logic must NOT rely on LLM decisions**
-- Alerts should be deterministic where possible
 
 ## Deployment Workflow
 
@@ -41,41 +38,3 @@ Baby tracking app for sleep-deprived parents.
 ## Non-Goals (v1)
 - No push notifications
 - No multi-baby support
-
-## Feedback workflow
-
-1. Franklin writes all comments and change requests in FEEDBACK.md
-   at the project root — written naturally, as spoken or dictated,
-   no need to structure it.
-
-2. When told "action FEEDBACK.md" or "execute feedback.md":
-   - Read FEEDBACK.md in full
-   - Ask clarification questions if anything is unclear, and provide your best answer for each question to get Franklin's input
-   - Rewrite the contents into a structured Claude Code prompt 
-     using the established format: goal, context, success criteria, 
-     constraints
-   - Show the rewritten prompt to Franklin and wait for approval 
-     before doing any work
-   - If Franklin says something like "looks good" or "go ahead", proceed
-   - If Franklin requests changes to the rewrite, update and 
-     confirm again before acting
-
-3. Work through every item in the approved prompt sequentially.
-   Confirm what was done and the success criteria met before 
-   moving to the next item.
-
-4. Before marking work as complete:
-   - Test each feature in the running app (local dev server)
-   - Verify all functionality works as expected
-   - Fix any bugs discovered during testing
-   - Commit changes only when verified working
-   - Deploy to Vercel and verify deployment succeeds (per Deployment Workflow above)
-   - Do NOT proceed until all features are tested and deployed
-
-5. When ALL items are complete, tested, and deployed:
-   - Clear FEEDBACK.md entirely
-   - Confirm to Franklin that FEEDBACK.md has been cleared
-
-6. If any item cannot be completed or a test fails: stop, report 
-   clearly what succeeded and what remains, and do NOT clear 
-   FEEDBACK.md until everything is resolved.

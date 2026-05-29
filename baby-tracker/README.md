@@ -1,14 +1,14 @@
 # Baby Tracker
 
-Mobile-first baby activity tracking app for sleep-deprived parents. Log feeds, sleep, nappies, and weight via voice input.
+Mobile-first baby activity tracking app for sleep-deprived parents. One-handed tap-based logging for feeds, sleep, and nappies.
 
 ## Features
 
-- **Voice-only input** using Web Speech API (Chrome mobile, iOS Safari, Android Chrome)
-- **Natural language parsing** via Claude API — "breastfed for 20 minutes left side" → structured log
-- **NHS-based alerts** for feeding patterns, nappy output, and side alternation
+- **Tap-based multi-step logging** for feeds, sleep, and nappies — one-handed, mobile-first
+- **Optional notes** on any activity — added as a last step before saving
+- **Backdating support** — select "Earlier" and specify hours ago
 - **Mobile-first dashboard** with metrics, timeline, and recent activity
-- **Backdating support** — "bottle 60ml 30 minutes ago" logs correct time
+- **Insights** — ask natural language questions about baby data via Claude API
 - **No authentication** — simple identity selection (Franklin/Clémence)
 
 ## Prerequisites
@@ -51,82 +51,6 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Testing NLP Parser
-
-Test all 15 example sentences from the PRD:
-
-```bash
-# Breastfeed examples
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"breastfed for 20 minutes left side","logged_by":"Franklin"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"breastfed for 20 minutes left tit","logged_by":"Franklin"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"she fed on the right for 15 mins","logged_by":"Clémence"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"fed both sides, about 10 minutes each","logged_by":"Franklin"}'
-
-# Bottle examples
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"bottle, 90ml","logged_by":"Franklin"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"gave her a bottle of 60ml 30 minutes ago","logged_by":"Clémence"}'
-
-# Sleep examples
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"she slept for 2 hours","logged_by":"Franklin"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"baby slept 45 minutes, that was at 3am","logged_by":"Clémence"}'
-
-# Nappy examples
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"nappy change, wet","logged_by":"Franklin"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"dirty nappy just now","logged_by":"Clémence"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"mixed nappy","logged_by":"Franklin"}'
-
-# Weight examples
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"she weighs 3.8 kilos","logged_by":"Clémence"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"weight check: 4100 grams","logged_by":"Franklin"}'
-
-# Note examples
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"note: she seemed gassy after the feed","logged_by":"Clémence"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"fed right tit 8 mins — not sure she latched well","logged_by":"Franklin"}'
-
-curl -X POST http://localhost:3000/api/parse \
-  -H "Content-Type: application/json" \
-  -d '{"text":"quick feed left side maybe 5 minutes, around 6am","logged_by":"Clémence"}'
-```
-
 ## Deployment to Vercel
 
 ### 1. Push to GitHub
@@ -152,33 +76,9 @@ git push origin main
 
 ### 3. Test on Mobile
 
-Once deployed, open the Vercel URL on your phone (iOS Safari or Android Chrome) to test voice input.
-
-## NHS Alert Rules
-
-The app implements these NHS-based alerts (non-diagnostic):
-
-1. **No feed in 3h+**: Warning if no feed logged for 3+ hours
-2. **Short feed (<10min)**: Info if most recent breastfeed was <10 minutes
-3. **Low nappy count**: Warning if <6 wet nappies by 8pm
-4. **Side imbalance**: Info if left/right breastfeed difference >2 today
-
-## Browser Support
-
-| Feature | Chrome (mobile) | Safari (iOS) | Chrome (desktop) | Firefox | Safari (macOS) |
-|---------|----------------|--------------|------------------|---------|----------------|
-| Voice Input | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-**Voice input requires Chrome or iOS Safari.** Other browsers will show an error message.
+Once deployed, open the Vercel URL on your phone (iOS Safari or Android Chrome).
 
 ## Troubleshooting
-
-### Voice input not working
-
-- **Check browser**: Must be Chrome (mobile/desktop) or iOS Safari
-- **Check permissions**: Allow microphone access when prompted
-- **Check HTTPS**: Web Speech API requires HTTPS (works on localhost in dev)
 
 ### Parse API errors
 
@@ -198,22 +98,20 @@ The app implements these NHS-based alerts (non-diagnostic):
 /src
   /app
     /api
-      /parse     # Claude API NLP parser
+      /query     # Claude API natural language Q&A
       /report    # Claude API report generator
     layout.tsx   # Root layout
     page.tsx     # Dashboard route
   /components
     Dashboard.tsx       # Main UI
-    VoiceInput.tsx      # Web Speech API integration
-    AlertBanner.tsx     # NHS alerts
+    ActivityForm.tsx    # Multi-step tap logging (feed/sleep/nappy + optional note)
     MetricCards.tsx     # Feed/sleep/nappy metrics
-    Timeline.tsx        # 24h colour-coded timeline
-    RecentLogs.tsx      # Last 5 entries
+    RecentLogs.tsx      # Last 5 entries (📝 icon if note attached)
+    ActivityBottomSheet.tsx  # Activity detail view (shows note if present)
     IdentityPicker.tsx  # Franklin/Clémence selector
   /lib
     supabase.ts    # Supabase client
     claude.ts      # Anthropic client
-    alerts.ts      # NHS alert logic (deterministic)
     types.ts       # TypeScript types
   /hooks
     useIdentity.ts # localStorage identity

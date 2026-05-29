@@ -14,7 +14,7 @@ interface ActivityFormProps {
   todayLogs?: Log[];
 }
 
-type FormStep = 'type' | 'timing' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'stool-type' | 'saving';
+type FormStep = 'type' | 'timing' | 'feed-type' | 'feed-side' | 'feed-duration' | 'feed-amount' | 'sleep-duration' | 'nappy-type' | 'stool-type' | 'note' | 'saving';
 
 interface ToastState {
   message: string;
@@ -40,6 +40,8 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
   const [nappyType, setNappyType] = useState<NappyType | null>(null);
   const [stoolType, setStoolType] = useState<PooConsistency | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
+  const [noteText, setNoteText] = useState('');
+  const [pendingLogData, setPendingLogData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [customTime, setCustomTime] = useState<string | null>(null);
@@ -78,10 +80,17 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     setNappyType(null);
     setStoolType(null);
     setDuration(null);
+    setNoteText('');
+    setPendingLogData(null);
     setError(null);
     setCustomTime(null);
     setShowTimeInput(false);
     setHoursAgo('1');
+  };
+
+  const goToNote = (logData: any) => {
+    setPendingLogData(logData);
+    setStep('note');
   };
 
   const saveLog = async (logData: any) => {
@@ -376,11 +385,10 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
     const handleQuickLog = () => {
       setSide(suggestedSide as Side);
       setDuration(defaultDuration);
-      // Save to localStorage before logging
       if (typeof window !== 'undefined') {
         localStorage.setItem('lastBreastfeedSide', suggestedSide);
       }
-      saveLog({ log_type: 'breastfeed', side: suggestedSide, duration_minutes: defaultDuration });
+      goToNote({ log_type: 'breastfeed', side: suggestedSide, duration_minutes: defaultDuration });
     };
 
     return (
@@ -495,11 +503,10 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
               key={dur}
               onClick={() => {
                 setDuration(dur);
-                // Save side to localStorage for next time
                 if (typeof window !== 'undefined' && side) {
                   localStorage.setItem('lastBreastfeedSide', side);
                 }
-                saveLog({ log_type: 'breastfeed', side, duration_minutes: dur });
+                goToNote({ log_type: 'breastfeed', side, duration_minutes: dur });
               }}
               className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[100px] flex flex-col items-center justify-center gap-2"
             >
@@ -532,7 +539,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             <button
               key={amount}
               onClick={() => {
-                saveLog({ log_type: 'bottle', amount_ml: amount });
+                goToNote({ log_type: 'bottle', amount_ml: amount });
               }}
               className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[100px] flex flex-col items-center justify-center gap-2"
             >
@@ -572,7 +579,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
             <button
               key={value}
               onClick={() => {
-                saveLog({ log_type: 'sleep', duration_minutes: value });
+                goToNote({ log_type: 'sleep', duration_minutes: value });
               }}
               className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[100px] flex flex-col items-center justify-center gap-2"
             >
@@ -587,7 +594,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
               if (hours && !isNaN(Number(hours))) {
                 const minutes = Math.round(Number(hours) * 60);
                 if (minutes > 0) {
-                  saveLog({ log_type: 'sleep', duration_minutes: minutes });
+                  goToNote({ log_type: 'sleep', duration_minutes: minutes });
                 }
               }
             }}
@@ -617,7 +624,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setNappyType('wet');
-              saveLog({ log_type: 'nappy', nappy_type: 'wet' });
+              goToNote({ log_type: 'nappy', nappy_type: 'wet' });
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -668,7 +675,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setStoolType('normal');
-              saveLog({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'normal' });
+              goToNote({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'normal' });
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -679,7 +686,7 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setStoolType('soft');
-              saveLog({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'soft' });
+              goToNote({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'soft' });
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -690,12 +697,57 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setStoolType('liquid');
-              saveLog({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'liquid' });
+              goToNote({ log_type: 'nappy', nappy_type: nappyType, poo_consistency: 'liquid' });
             }}
             className="bg-yellow-500 hover:bg-yellow-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
             <span className="text-5xl">💧</span>
             <span className="text-lg font-semibold">Liquid</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Note step (optional, last step before saving)
+  if (step === 'note') {
+    return (
+      <div className="space-y-3">
+        <button
+          onClick={() => setStep(
+            pendingLogData?.log_type === 'sleep' ? 'sleep-duration' :
+            pendingLogData?.log_type === 'bottle' ? 'feed-amount' :
+            pendingLogData?.log_type === 'nappy' && pendingLogData?.poo_consistency ? 'stool-type' :
+            pendingLogData?.log_type === 'nappy' ? 'nappy-type' :
+            'feed-duration'
+          )}
+          className="text-gray-600 hover:text-gray-900 flex items-center gap-1 min-h-[48px]"
+        >
+          ← Back
+        </button>
+
+        <h2 className="text-lg font-semibold text-gray-900 text-center">Add a note? <span className="text-gray-500 font-normal text-base">(optional)</span></h2>
+
+        <textarea
+          value={noteText}
+          onChange={(e) => setNoteText(e.target.value)}
+          placeholder="e.g. seemed gassy, latched well..."
+          className="w-full bg-white border border-gray-300 rounded-xl p-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] resize-none text-base"
+          autoFocus
+        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => saveLog(pendingLogData)}
+            className="bg-gray-200 hover:bg-gray-300 active:scale-95 text-gray-700 rounded-2xl p-4 transition-all min-h-[64px] font-semibold text-lg"
+          >
+            Skip
+          </button>
+          <button
+            onClick={() => saveLog({ ...pendingLogData, note: noteText.trim() || undefined })}
+            className="bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-2xl p-4 transition-all min-h-[64px] font-semibold text-lg"
+          >
+            Save
           </button>
         </div>
       </div>

@@ -165,6 +165,14 @@ export default function ActivityBottomSheet({ log, onClose }: ActivityBottomShee
               </div>
             </div>
 
+            {/* Note */}
+            {log.note && (
+              <div className="bg-gray-700 rounded-xl p-4">
+                <p className="text-sm text-gray-400 mb-1">Note</p>
+                <p className="text-base text-gray-100 leading-relaxed">📝 {log.note}</p>
+              </div>
+            )}
+
             {/* Logged by */}
             <div className="bg-gray-700 rounded-xl p-4">
               <p className="text-sm text-gray-400 mb-1">Logged by</p>
