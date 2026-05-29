@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
 
+export async function DELETE() {
+  const { error } = await supabase
+    .from('logs')
+    .delete()
+    .eq('environment' as any, 'test');
+
+  if (error) {
+    console.error('Delete test data error:', error);
+    return NextResponse.json({ error: 'Failed to delete test data' }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

@@ -9,6 +9,8 @@ interface EnvironmentToggleProps {
 
 export default function EnvironmentToggle({ identity }: EnvironmentToggleProps) {
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('baby-tracker-environment') as 'production' | 'test' | null;
@@ -26,21 +28,47 @@ export default function EnvironmentToggle({ identity }: EnvironmentToggleProps) 
     const newEnv = environment === 'production' ? 'test' : 'production';
     setEnvironment(newEnv);
     localStorage.setItem('baby-tracker-environment', newEnv);
-    // Reload to apply new environment
     window.location.reload();
   };
 
+  const handleDeleteTap = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      setTimeout(() => setConfirmDelete(false), 3000);
+      return;
+    }
+    setDeleting(true);
+    setConfirmDelete(false);
+    fetch('/api/logs', { method: 'DELETE' })
+      .then(() => window.location.reload())
+      .catch(() => setDeleting(false));
+  };
+
   return (
-    <button
-      onClick={toggleEnvironment}
-      className={`${
-        environment === 'production'
-          ? 'bg-green-600 hover:bg-green-700'
-          : 'bg-yellow-600 hover:bg-yellow-700'
-      } text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-colors min-h-[40px] flex items-center gap-2`}
-    >
-      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-      ENV: {environment.toUpperCase()}
-    </button>
+    <div className="flex items-center gap-2">
+      <button
+        onClick={toggleEnvironment}
+        className={`${
+          environment === 'production'
+            ? 'bg-green-600 hover:bg-green-700'
+            : 'bg-yellow-600 hover:bg-yellow-700'
+        } text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transition-colors min-h-[40px] flex items-center gap-2`}
+      >
+        <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+        ENV: {environment.toUpperCase()}
+      </button>
+
+      {environment === 'test' && (
+        <button
+          onClick={handleDeleteTap}
+          disabled={deleting}
+          className={`${
+            confirmDelete ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-600 hover:bg-gray-500'
+          } text-white px-3 py-2 rounded-full text-xs font-bold shadow-lg transition-colors min-h-[40px] flex items-center gap-1`}
+        >
+          {deleting ? '...' : confirmDelete ? 'Confirm?' : '🗑'}
+        </button>
+      )}
+    </div>
   );
 }
