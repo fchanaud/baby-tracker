@@ -350,9 +350,12 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
                 value={customDateTime || defaultDateTime}
                 onChange={(e) => {
                   const selected = new Date(e.target.value);
-                  if (selected > new Date()) {
-                    setCustomDateTime(new Date().toISOString().slice(0, 16));
+                  const now = new Date();
+                  if (selected > now) {
+                    setError('Cannot select a time in the future');
+                    setCustomDateTime(now.toISOString().slice(0, 16));
                   } else {
+                    setError(null);
                     setCustomDateTime(e.target.value);
                   }
                 }}
@@ -539,7 +542,10 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setSide('left');
-              setStep('feed-duration');
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('lastBreastfeedSide', 'left');
+              }
+              goToNote({ log_type: 'breastfeed', side: 'left', duration_minutes: duration });
             }}
             className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >
@@ -550,7 +556,10 @@ export default function ActivityForm({ identity, onLogCreated, onSaveError, init
           <button
             onClick={() => {
               setSide('right');
-              setStep('feed-duration');
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('lastBreastfeedSide', 'right');
+              }
+              goToNote({ log_type: 'breastfeed', side: 'right', duration_minutes: duration });
             }}
             className="bg-pink-500 hover:bg-pink-600 active:scale-95 text-white rounded-2xl p-6 transition-all min-h-[120px] flex flex-col items-center justify-center gap-2"
           >

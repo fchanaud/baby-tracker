@@ -60,9 +60,20 @@ export default function Dashboard() {
       const now = Date.now();
       const feedTime = new Date(lastFeed.logged_at).getTime();
       const diffMs = now - feedTime;
-      const hours = Math.floor(diffMs / (1000 * 60 * 60));
-      const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      lastFeedText = `Last feed: ${hours}h ${mins}m ago (${lastFeed.side})`;
+      const totalMins = Math.floor(diffMs / (1000 * 60));
+      const hours = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+
+      // Format: don't show "0h", show minutes only if less than 1 hour
+      if (totalMins < 1) {
+        lastFeedText = `Last feed: Just now (${lastFeed.side})`;
+      } else if (hours === 0) {
+        lastFeedText = `Last feed: ${mins}m ago (${lastFeed.side})`;
+      } else if (mins === 0) {
+        lastFeedText = `Last feed: ${hours}h ago (${lastFeed.side})`;
+      } else {
+        lastFeedText = `Last feed: ${hours}h ${mins}m ago (${lastFeed.side})`;
+      }
     }
 
     return {
