@@ -26,6 +26,15 @@ function timeAgo(ms: number): string {
   return m > 0 ? `${h}h ${m}m ago` : `${h}h ago`;
 }
 
+function duration(ms: number): string {
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
   const { profile } = useBabyProfile();
   const [, forceUpdate] = useState(0);
@@ -49,9 +58,7 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
   const totalSleepHours = Math.floor(totalSleepMinutes / 60);
   const totalSleepMins = totalSleepMinutes % 60;
 
-  const nappyLogs = logs.filter(
-    log => log.log_type === 'nappy' && (log.nappy_type === 'wet' || log.nappy_type === 'both')
-  );
+  const nappyLogs = logs.filter(log => log.log_type === 'nappy');
   const wetNappiesToday = nappyLogs.length;
 
   // Time awake
@@ -62,7 +69,7 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
   let awakeValue = 'N/A';
   if (allSleepLogs.length > 0) {
     const sleepEndTime = new Date(allSleepLogs[0].logged_at).getTime();
-    awakeValue = timeAgo(Date.now() - sleepEndTime);
+    awakeValue = duration(Date.now() - sleepEndTime);
   }
 
   // Last nappy (any type)
@@ -71,14 +78,15 @@ export default function MetricCards({ logs, allLogs }: MetricCardsProps) {
     .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())[0];
   const lastNappyValue = lastNappy ? timeAgo(Date.now() - new Date(lastNappy.logged_at).getTime()) : 'N/A';
 
-  // Last milk (breastfeed or bottle) with type detail
+  // Last milk — use feed end time (logged_at + duration)
   const lastMilk = allLogs
     .filter(log => log.log_type === 'breastfeed' || log.log_type === 'bottle')
     .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())[0];
   let lastMilkValue = 'N/A';
   let lastMilkDetail = '';
   if (lastMilk) {
-    lastMilkValue = timeAgo(Date.now() - new Date(lastMilk.logged_at).getTime());
+    const feedEndTime = new Date(lastMilk.logged_at).getTime() + (lastMilk.duration_minutes || 0) * 60000;
+    lastMilkValue = timeAgo(Date.now() - feedEndTime);
     if (lastMilk.log_type === 'breastfeed') {
       lastMilkDetail = lastMilk.side ? lastMilk.side : 'breast';
     } else {
