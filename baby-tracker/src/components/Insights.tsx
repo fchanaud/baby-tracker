@@ -1,46 +1,89 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useIdentity } from '@/hooks/useIdentity';
 import { getEnvironment } from '@/lib/supabase';
 import IdentityPicker from './IdentityPicker';
 import Navbar from './Navbar';
 
+interface ConversationEntry {
+  question: string;
+  answer: string;
+  timestamp: number;
+}
+
 export default function Insights() {
   const { identity, setIdentity, isLoading: identityLoading } = useIdentity();
   const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
+  const [history, setHistory] = useState<ConversationEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load conversation history from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('insightsHistory');
+      if (saved) {
+        try {
+          setHistory(JSON.parse(saved));
+        } catch (e) {
+          console.error('Failed to load history:', e);
+        }
+      }
+    }
+  }, []);
+
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined' && history.length > 0) {
+      localStorage.setItem('insightsHistory', JSON.stringify(history));
+    }
+  }, [history]);
 
   const handleAsk = async () => {
     if (!question.trim()) return;
 
+    const currentQuestion = question.trim();
     setIsLoading(true);
-    setAnswer('');
+    setQuestion(''); // Clear input immediately
 
     try {
       const response = await fetch('/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          question: question.trim(),
+          question: currentQuestion,
           environment: getEnvironment()
         }),
       });
 
       const result = await response.json();
 
-      if (!response.ok) {
-        setAnswer(`Error: ${result.error || 'Failed to get answer'}`);
-        return;
-      }
+      const answerText = !response.ok
+        ? `Error: ${result.error || 'Failed to get answer'}`
+        : result.answer;
 
-      setAnswer(result.answer);
+      // Add to history
+      setHistory(prev => [...prev, {
+        question: currentQuestion,
+        answer: answerText,
+        timestamp: Date.now(),
+      }]);
     } catch (error) {
       console.error('Query error:', error);
-      setAnswer('Failed to get answer. Please try again.');
+      setHistory(prev => [...prev, {
+        question: currentQuestion,
+        answer: 'Failed to get answer. Please try again.',
+        timestamp: Date.now(),
+      }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleClearHistory = () => {
+    setHistory([]);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('insightsHistory');
     }
   };
 
@@ -73,7 +116,40 @@ export default function Insights() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Natural Language Query Section */}
+        {/* Conversation History */}
+        {history.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-100">Conversation</h2>
+              <button
+                onClick={handleClearHistory}
+                className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                Clear history
+              </button>
+            </div>
+
+            {history.map((entry, i) => (
+              <div key={i} className="space-y-3">
+                {/* Question */}
+                <div className="bg-blue-900 border border-blue-700 rounded-xl p-3">
+                  <p className="text-sm text-gray-400 mb-1">You asked:</p>
+                  <p className="text-gray-100">{entry.question}</p>
+                </div>
+
+                {/* Answer */}
+                <div className="bg-gray-800 border border-gray-700 rounded-xl p-3">
+                  <p className="text-sm text-gray-400 mb-1">Answer:</p>
+                  <p className="text-gray-100 leading-relaxed whitespace-pre-wrap">
+                    {entry.answer.replace(/\*\*/g, '')}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Query Input Section */}
         <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
           <h2 className="text-lg font-semibold mb-4 text-gray-100">Ask about your baby's data</h2>
 
@@ -96,16 +172,7 @@ export default function Insights() {
             </button>
           </div>
 
-          {/* Answer */}
-          {answer && (
-            <div className="mt-4 p-4 bg-gray-900 border border-gray-700 rounded-xl">
-              <p className="text-gray-100 leading-relaxed whitespace-pre-wrap">
-                {answer.replace(/\*\*/g, '')}
-              </p>
-            </div>
-          )}
-
-          {/* Example questions - always visible */}
+          {/* Example questions */}
           <div className="mt-4 space-y-2">
             <p className="text-xs text-gray-500">Quick questions:</p>
             <div className="flex flex-wrap gap-2">
@@ -125,6 +192,7 @@ export default function Insights() {
                   key={i}
                   onClick={() => setQuestion(example)}
                   className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1.5 rounded-full transition-colors"
+                  disabled={isLoading}
                 >
                   {example}
                 </button>

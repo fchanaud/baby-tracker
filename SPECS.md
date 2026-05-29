@@ -1,2 +1,0 @@
-- when clicking on earlier and then breastfeed, we should not see the timer but just log the duration and then ask for left or right
-- 4h previous or after must be changed to 6h because we changed the timeframe
